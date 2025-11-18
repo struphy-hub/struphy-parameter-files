@@ -21,13 +21,17 @@ from struphy.models.kinetic import VlasovAmpereOneSpecies
 env = EnvironmentOptions()
 
 # units
-base_units = BaseUnits()
+base_units = BaseUnits(x = 1.0, B = 1.0, n = 1.0)
 
 # time stepping
-time_opts = Time()
+time_opts = Time(dt = 0.05, Tend = 75.0, split_algo = "LieTrotter")
 
 # geometry
-domain = domains.Cuboid()
+domain = domains.Cuboid(
+    l1 = 0., r1 = 12.56,
+    l2 = 0., r2 = 1.,
+    l3 = 0., r3 = 1.
+)
 
 # fluid equilibrium (can be used as part of initial conditions)
 equil = equils.HomogenSlab()
