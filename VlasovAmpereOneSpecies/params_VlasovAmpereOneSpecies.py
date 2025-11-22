@@ -1,3 +1,5 @@
+import os
+
 from struphy.io.options import EnvironmentOptions, BaseUnits, Time
 from struphy.geometry import domains
 from struphy.fields_background import equils
@@ -18,7 +20,8 @@ from struphy import main
 from struphy.models.kinetic import VlasovAmpereOneSpecies
 
 # environment options
-env = EnvironmentOptions()
+output_folders = os.path.join(os.getcwd())
+env = EnvironmentOptions(out_folders=output_folders, sim_folder="weak_Landau")
 
 # units
 base_units = BaseUnits(x = 1.0, B = 1.0, n = 1.0)
@@ -36,11 +39,19 @@ domain = domains.Cuboid(
 # fluid equilibrium (can be used as part of initial conditions)
 equil = equils.HomogenSlab()
 
+"""
+missing => nq_el
+mpi_dims_mas ?= dims_mask
+"""
+
 # grid
-grid = grids.TensorProductGrid()
+grid = grids.TensorProductGrid(Nel = [32,1,1],mpi_dims_mask=[2,2,1])
 
 # derham options
-derham_opts = DerhamOptions()
+derham_opts = DerhamOptions(
+    p = [1,1,1], spl_kind=[True,True,True],dirichlet_bc=None,
+    nq_pr = [2,2,1], polar_ck = -1
+    )
 
 # light-weight model instance
 model = VlasovAmpereOneSpecies()
