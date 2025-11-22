@@ -39,17 +39,12 @@ domain = domains.Cuboid(
 # fluid equilibrium (can be used as part of initial conditions)
 equil = equils.HomogenSlab()
 
-"""
-missing => nq_el
-mpi_dims_mas ?= dims_mask
-"""
-
 # grid
 grid = grids.TensorProductGrid(Nel = [32,1,1],mpi_dims_mask=[2,2,1])
 
 # derham options
 derham_opts = DerhamOptions(
-    p = [1,1,1], spl_kind=[True,True,True],dirichlet_bc=None,
+    p = [1,1,1], spl_kind=[True,True,True],dirichlet_bc=None, nquads=[2,2,1]
     nq_pr = [2,2,1], polar_ck = -1
     )
 
@@ -57,37 +52,46 @@ derham_opts = DerhamOptions(
 model = VlasovAmpereOneSpecies()
 
 # species parameters
-model.kinetic_ions.set_phys_params()
+model.kinetic_ions.set_phys_params(mass_number= 1, charge_number= 1, eps = 0.25, kappa= 1.)
 
-loading_params = LoadingParameters()
-weights_params = WeightsParameters()
-boundary_params = BoundaryParameters()
+loading_params = LoadingParameters(ppc = 10000,Np=99,
+                                   loading = "pseudo_random",seed = None, 
+                                   spatial = "uniform",
+                                   dir_particles = "path_to_particles"
+                                   ,moments=[0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
+weights_params = WeightsParameters(control_variate= True)
+boundary_params = BoundaryParameters(bc = ("periodic","periodic","periodic"))
 model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,
                                boundary_params=boundary_params,
                                )
 model.kinetic_ions.set_sorting_boxes()
 
-binplot = BinningPlot(slice='e1', n_bins=128, ranges=(0.0, 1.0))
-model.kinetic_ions.set_save_data(binning_plots=(binplot,))
+binplot = BinningPlot(slice='e1_v1', n_bins= (128, 128), ranges= ((0.,1.), (-5.,5.)))
+model.kinetic_ions.set_save_data(binning_plots=(binplot,),n_markers=3)
 
 # propagator options
-model.propagators.push_eta.options = model.propagators.push_eta.Options()
+model.propagators.push_eta.options = model.propagators.push_eta.Options() # default algo: RK4
 if model.with_B0:
     model.propagators.push_vxb.options = model.propagators.push_vxb.Options()
-model.propagators.coupling_va.options = model.propagators.coupling_va.Options()
-model.initial_poisson.options = model.initial_poisson.Options()
+model.propagators.coupling_va.options = model.propagators.coupling_va.Options(
+    solver = "pcg", precond = "MassMatrixPreconditioner"
+)
+model.initial_poisson.options = model.initial_poisson.Options(
+    solver = "pcg", precond = "MassMatrixPreconditioner"
+)
 
 # background, perturbations and initial conditions
 model.em_fields.phi.add_background(FieldsBackground())
 model.em_fields.phi.add_perturbation(perturbations.TorusModesCos())
+
 maxwellian_1 = maxwellians.Maxwellian3D(n=(1.0, None))
 maxwellian_2 = maxwellians.Maxwellian3D(n=(0.1, None))
 background = maxwellian_1 + maxwellian_2
 model.kinetic_ions.var.add_background(background)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
-perturbation = perturbations.TorusModesCos()
+perturbation = perturbations.TorusModesCos(comp=0,amps= (0.001),ns = 1)
 maxwellian_1pt = maxwellians.Maxwellian3D(n=(1.0, perturbation))
 init = maxwellian_1pt + maxwellian_2
 model.kinetic_ions.var.add_initial_condition(init)
