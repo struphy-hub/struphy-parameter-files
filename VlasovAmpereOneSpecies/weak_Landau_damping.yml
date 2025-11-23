@@ -77,8 +77,7 @@ kinetic:
                 value: 1.
             #Searching
             Z0: -1.
-        #Searching
-        background:
+        background: #maxwellians.Maxwellian3D(n = (1,perturbation))
             type: Maxwellian6D
             Maxwellian6D: {n: 1.}
         perturbation:

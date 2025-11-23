@@ -72,7 +72,6 @@ model.kinetic_ions.set_save_data(binning_plots=(binplot,),n_markers=3)
 
 # propagator options
 model.propagators.push_eta.options = model.propagators.push_eta.Options() # default algo: RK4
-model.propagators.push_eta._pusher.tol = 1.0e-08
 if model.with_B0:
     model.propagators.push_vxb.options = model.propagators.push_vxb.Options()
 model.propagators.coupling_va.options = model.propagators.coupling_va.Options(
@@ -83,19 +82,14 @@ model.initial_poisson.options = model.initial_poisson.Options(
 )
 
 # background, perturbations and initial conditions
-model.em_fields.phi.add_background(FieldsBackground())
-model.em_fields.phi.add_perturbation(perturbations.TorusModesCos())
 
-maxwellian_1 = maxwellians.Maxwellian3D(n=(1.0, None))
-maxwellian_2 = maxwellians.Maxwellian3D(n=(0.1, None))
-background = maxwellian_1 + maxwellian_2
+# XXX: Should perturbation be separated from background?
+perturbation = perturbations.TorusModesCos(comp = 0, amps = (0.001), ns = 1)
+background = maxwellians.Maxwellian3D(n = (1,perturbation)) # XXX: equivalent to Maxwellain6D?
 model.kinetic_ions.var.add_background(background)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
-perturbation = perturbations.TorusModesCos(comp=0,amps= (0.001),ns = 1)
-maxwellian_1pt = maxwellians.Maxwellian3D(n=(1.0, perturbation))
-init = maxwellian_1pt + maxwellian_2
-model.kinetic_ions.var.add_initial_condition(init)
+# XXX: Unmentioned initial condition in .yml
 
 # optional: exclude variables from saving
 # model.kinetic_ions.var.save_data = False
