@@ -25,14 +25,14 @@ mhd_equilibrium:
 em_fields:
     options:
         solvers:
-            maxwell:
+            maxwell: 
                 type: [pcg, MassMatrixPreconditioner]
                 tol: 1.0e-08
                 maxiter: 3000
                 info: false
                 verbose: false
-            poisson:
-                type: [pcg, MassMatrixPreconditioner] #model.initial_poisson.Options(solver = "pcg", precond = "MassMatrixPreconditioner")
+            poisson: #model.initial_poisson.Options(solver = "pcg", precond = "MassMatrixPreconditioner",solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False))
+                type: [pcg, MassMatrixPreconditioner]
                 tol: 1.0e-08
                 maxiter: 3000
                 info: false
@@ -63,14 +63,10 @@ kinetic:
         options:
             algos: {push_eta: rk4} #model.propagators.push_eta.Options()
             coupling_solver:
-                type: [pcg, MassMatrixPreconditioner] #model.propagators.coupling_va.Options(solver = "pcg", precond = "MassMatrixPreconditioner")
-                #Searching
+                type: [pcg, MassMatrixPreconditioner] #model.propagators.coupling_va.options = model.propagators.coupling_va.Options(solver = "pcg", precond = "MassMatrixPreconditioner", solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False))
                 tol: 1.0e-08
-                #Searching
                 maxiter: 3000
-                #Searching
                 info: false
-                #Searching
                 verbose: false
             verification: 
                 set_kappa: true #model.kinetic_ions.set_phys_params(kappa = 1.)

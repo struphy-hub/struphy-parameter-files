@@ -19,6 +19,9 @@ from struphy import main
 # import model, set verbosity
 from struphy.models.kinetic import VlasovAmpereOneSpecies
 
+#import class to set solver Parameters
+from struphy.linear_algebra.solver import SolverParameters
+
 # environment options
 output_folders = os.path.join(os.getcwd())
 env = EnvironmentOptions(out_folders=output_folders, sim_folder="weak_Landau")
@@ -74,11 +77,16 @@ model.kinetic_ions.set_save_data(binning_plots=(binplot,),n_markers=3)
 model.propagators.push_eta.options = model.propagators.push_eta.Options() # default algo: RK4
 if model.with_B0:
     model.propagators.push_vxb.options = model.propagators.push_vxb.Options()
+
+# NOTE: matches default parameter
 model.propagators.coupling_va.options = model.propagators.coupling_va.Options(
-    solver = "pcg", precond = "MassMatrixPreconditioner"
+    solver = "pcg", precond = "MassMatrixPreconditioner", 
+    solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False)
 )
+# NOTE: matches default parameter
 model.initial_poisson.options = model.initial_poisson.Options(
-    solver = "pcg", precond = "MassMatrixPreconditioner"
+    solver = "pcg", precond = "MassMatrixPreconditioner",
+    solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False)
 )
 
 # background, perturbations and initial conditions
