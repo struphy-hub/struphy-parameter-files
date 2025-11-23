@@ -44,7 +44,7 @@ grid = grids.TensorProductGrid(Nel = [32,1,1],mpi_dims_mask=[2,2,1])
 
 # derham options
 derham_opts = DerhamOptions(
-    p = [1,1,1], spl_kind=[True,True,True],dirichlet_bc=None, nquads=[2,2,1]
+    p = [1,1,1], spl_kind=[True,True,True],dirichlet_bc=None, nquads=[2,2,1],
     nq_pr = [2,2,1], polar_ck = -1
     )
 
@@ -52,7 +52,7 @@ derham_opts = DerhamOptions(
 model = VlasovAmpereOneSpecies()
 
 # species parameters
-model.kinetic_ions.set_phys_params(mass_number= 1, charge_number= 1, eps = 0.25, kappa= 1.)
+model.kinetic_ions.set_phys_params(mass_number= 1, charge_number= 1, epsilon = 0.25, kappa= 1.)
 
 loading_params = LoadingParameters(ppc = 10000,Np=99,
                                    loading = "pseudo_random",seed = None, 
@@ -72,6 +72,7 @@ model.kinetic_ions.set_save_data(binning_plots=(binplot,),n_markers=3)
 
 # propagator options
 model.propagators.push_eta.options = model.propagators.push_eta.Options() # default algo: RK4
+model.propagators.push_eta._pusher.tol = 1.0e-08
 if model.with_B0:
     model.propagators.push_vxb.options = model.propagators.push_vxb.Options()
 model.propagators.coupling_va.options = model.propagators.coupling_va.Options(
