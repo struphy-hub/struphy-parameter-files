@@ -19,8 +19,9 @@ from struphy import main
 # import model, set verbosity
 from struphy.models.kinetic import VlasovAmpereOneSpecies
 
-#import class to set solver Parameters
-from struphy.linear_algebra.solver import SolverParameters
+from struphy.linear_algebra.solver import SolverParameters #import class to set solver Parameters
+from struphy.ode.utils import ButcherTableau #import class to set ode method
+
 
 # environment options
 output_folders = os.path.join(os.getcwd())
@@ -74,7 +75,9 @@ binplot = BinningPlot(slice='e1_v1', n_bins= (128, 128), ranges= ((0.,1.), (-5.,
 model.kinetic_ions.set_save_data(binning_plots=(binplot,),n_markers=3)
 
 # propagator options
-model.propagators.push_eta.options = model.propagators.push_eta.Options() # default algo: RK4
+
+ode_method = ButcherTableau(algo = "rk4")
+model.propagators.push_eta.options = model.propagators.push_eta.Options(ode_method) 
 if model.with_B0:
     model.propagators.push_vxb.options = model.propagators.push_vxb.Options()
 
@@ -92,7 +95,7 @@ model.initial_poisson.options = model.initial_poisson.Options(
 # background, perturbations and initial conditions
 
 # XXX: Should perturbation be separated from background?
-perturbation = perturbations.TorusModesCos(comp = 0, amps = (0.001), ns = 1)
+perturbation = perturbations.TorusModesCos(comp = 0, amps = (0.001,), ns = (1,))
 background = maxwellians.Maxwellian3D(n = (1,perturbation)) # XXX: equivalent to Maxwellain6D?
 model.kinetic_ions.var.add_background(background)
 
