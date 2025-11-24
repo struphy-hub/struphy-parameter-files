@@ -25,6 +25,7 @@ mhd_equilibrium:
 em_fields:
     options:
         solvers:
+            #Searching
             maxwell: 
                 type: [pcg, MassMatrixPreconditioner]
                 tol: 1.0e-08
@@ -73,16 +74,16 @@ kinetic:
                 value: 1.
             #Searching
             Z0: -1.
-        background: #maxwellians.Maxwellian3D(n = (1,perturbation))
+        background: #maxwellians.Maxwellian3D(n = (1,None))
             type: Maxwellian6D
             Maxwellian6D: {n: 1.}
         perturbation:
-            type: ModesCos #perturbations.TorusModesCos(comp = 0)
+            type: ModesCos #perturbations.ModesCos(comp = 0)
             ModesCos:
                 comps:
                     n: '0'
                 #Check
-                ls: #perturbations.TorusModeCos(ns = 1)
+                ls: #perturbations.ModeCos(ns = 1)
                     n: [1]
                 amps:
-                    n: [0.001]  #perturbations.TorusModesCos(amps = 0.001)
+                    n: [0.001]  #perturbations.ModesCos(amps = 0.001)

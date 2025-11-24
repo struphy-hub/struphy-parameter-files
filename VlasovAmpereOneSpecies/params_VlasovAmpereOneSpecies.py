@@ -1,3 +1,4 @@
+#TODO: find Z0, em_field: options: solver: maxwell, match test_verif_VlasovAmpereOneSpecies.py format
 import os
 
 from struphy.io.options import EnvironmentOptions, BaseUnits, Time
@@ -21,7 +22,6 @@ from struphy.models.kinetic import VlasovAmpereOneSpecies
 
 from struphy.linear_algebra.solver import SolverParameters #import class to set solver Parameters
 from struphy.ode.utils import ButcherTableau #import class to set ode method
-
 
 # environment options
 output_folders = os.path.join(os.getcwd())
@@ -53,7 +53,7 @@ derham_opts = DerhamOptions(
     )
 
 # light-weight model instance
-model = VlasovAmpereOneSpecies()
+model = VlasovAmpereOneSpecies(with_B0 = False)
 
 # species parameters
 model.kinetic_ions.set_phys_params(mass_number= 1, charge_number= 1, epsilon = 0.25, kappa= 1.)
@@ -76,13 +76,12 @@ model.kinetic_ions.set_save_data(binning_plots=(binplot,),n_markers=3)
 
 # propagator options
 
-ode_method = ButcherTableau(algo = "rk4")
-model.propagators.push_eta.options = model.propagators.push_eta.Options(ode_method) 
+model.propagators.push_eta.options = model.propagators.push_eta.Options(ButcherTableau(algo = "rk4")) 
 if model.with_B0:
     model.propagators.push_vxb.options = model.propagators.push_vxb.Options()
 
 # NOTE: matches default parameter
-model.propagators.coupling_va.options = model.propagators.coupling_va.Options(
+model.propagators.coupling_va.options = model.propagators.coupling_va.Options( #XXX: change coupling type?
     solver = "pcg", precond = "MassMatrixPreconditioner", 
     solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False)
 )
@@ -95,12 +94,15 @@ model.initial_poisson.options = model.initial_poisson.Options(
 # background, perturbations and initial conditions
 
 # XXX: Should perturbation be separated from background?
-perturbation = perturbations.TorusModesCos(comp = 0, amps = (0.001,), ns = (1,))
-background = maxwellians.Maxwellian3D(n = (1,perturbation)) # XXX: equivalent to Maxwellain6D?
+background = maxwellians.Maxwellian3D(n = (1.,None)) # XXX: equivalent to Maxwellain6D?
 model.kinetic_ions.var.add_background(background)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
 # XXX: Unmentioned initial condition in .yml
+perturbation = perturbations.ModeCos(comp = 0, amps = (0.001,), ls = (1,))
+init = maxwellians.Maxwellain3D(n=(1.,perturbation))
+model.kinetic_ions.var.add_initial_condition(init = init)
+
 
 # optional: exclude variables from saving
 # model.kinetic_ions.var.save_data = False
@@ -109,7 +111,7 @@ if __name__ == "__main__":
     # start run
     verbose = True
 
-    main.run(model,
+    main.run(model, 
              params_path=__file__,
              env=env,
              base_units=base_units,
