@@ -47,7 +47,7 @@ domain = domains.Cuboid(
 equil = equils.HomogenSlab()
 
 # grid
-grid = grids.TensorProductGrid(Nel = [32,1,1],mpi_dims_mask=[2,2,1])
+grid = grids.TensorProductGrid(Nel = [32,1,1],mpi_dims_mask=[True,True,True])
 
 # derham options
 derham_opts = DerhamOptions(
@@ -97,13 +97,13 @@ model.initial_poisson.options = model.initial_poisson.Options(
 # background, perturbations and initial conditions
 
 # XXX: Should perturbation be separated from background?
-background = maxwellians.Maxwellian3D(n = (1.,None)) # XXX: equivalent to Maxwellain6D?
+background = maxwellians.Maxwellian3D(n = (1.,None)) # XXX: equivalent to Maxwellian6D?
 model.kinetic_ions.var.add_background(background)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
 # XXX: Unmentioned initial condition in .yml
-perturbation = perturbations.ModeCos(comp = 0, amps = (0.001,), ls = (1,))
-init = maxwellians.Maxwellain3D(n=(1.,perturbation))
+perturbation = perturbations.ModesCos(comp = 0, amps = (0.001,), ls = (1,))
+init = maxwellians.Maxwellian3D(n=(1.,perturbation))
 model.kinetic_ions.var.add_initial_condition(init = init)
 
 
