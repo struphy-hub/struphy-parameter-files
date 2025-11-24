@@ -1,4 +1,7 @@
-#TODO: find Z0, em_field: options: solver: maxwell, match test_verif_VlasovAmpereOneSpecies.py format
+#TODO: find Z0, em_field: options: solver: maxwell
+"""
+Parameter file of weak Landau damping implemented using VlasovAmpereOneSpecies model
+"""
 import os
 
 from struphy.io.options import EnvironmentOptions, BaseUnits, Time
