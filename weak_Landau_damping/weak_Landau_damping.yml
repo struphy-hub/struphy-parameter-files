@@ -3,9 +3,7 @@ grid:
     p: [1, 1, 1] #DerhamOptions(p = [1,1,1])
     spl_kind: [true, true, true] #DerhamOptions(spl_kind = [True, True, True])
     dirichlet_bc: null #DerhamOptions(dirichlet_bc = None)
-    #Check
-    dims_mask: [true, true, true] #(grids.TensorProductGrid(mpi_dims_mask=[2,2,1]))
-    #Check
+    dims_mask: [true, true, true] #(grids.TensorProductGrid(mpi_dims_mask=[True,True,True]))
     nq_el: [2, 2, 1] #DerhamOptions(nquads = [2,2,1])
     nq_pr: [2, 2, 1] #DerhamOptions(nq_pr = [2,2,1])
     polar_ck: -1 #DerhamOptions(polar_ck = -1)
@@ -32,12 +30,14 @@ em_fields:
                 maxiter: 3000
                 info: false
                 verbose: false
-            poisson: #model.initial_poisson.Options(solver = "pcg", precond = "MassMatrixPreconditioner",solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False))
+            poisson: 
                 type: [pcg, MassMatrixPreconditioner]
                 tol: 1.0e-08
                 maxiter: 3000
                 info: false
                 verbose: false
+                #model.initial_poisson.Options(solver = "pcg", precond = "MassMatrixPreconditioner",
+                #solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False))
 
 kinetic:
     species1:
@@ -62,28 +62,29 @@ kinetic:
                 n_bins: [[128, 128]] #BinningPlot(n_bins = (128,128))
                 ranges: [[[0., 1.], [-5., 5.]]] #BinningPlot(ranges = (0.,1.),(-5.,5.))
         options:
-            algos: {push_eta: rk4} #model.propagators.push_eta.Options()
+            algos: {push_eta: rk4} #model.propagators.push_eta.Options(ButcherTableau(algo = "rk4"))
             coupling_solver:
-                type: [pcg, MassMatrixPreconditioner] #model.propagators.coupling_va.options = model.propagators.coupling_va.Options(solver = "pcg", precond = "MassMatrixPreconditioner", solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False))
+                type: [pcg, MassMatrixPreconditioner] 
                 tol: 1.0e-08
                 maxiter: 3000
                 info: false
                 verbose: false
+                #model.propagators.coupling_va.Options(solver = "pcg", precond = "MassMatrixPreconditioner", 
+                #solver_params = SolverParameters(tol = 1.0e-08, maxiter = 3000, info = False, verbose = False))
             verification: 
-                set_kappa: true #model.kinetic_ions.set_phys_params(kappa = 1.)
-                value: 1.
+                set_kappa: true 
+                value: 1. #model.kinetic_ions.set_phys_params(kappa = 1.)
             #Searching
             Z0: -1.
-        background: #maxwellians.Maxwellian3D(n = (1,None))
+        background: 
             type: Maxwellian6D
-            Maxwellian6D: {n: 1.}
+            Maxwellian6D: {n: 1.} #maxwellians.Maxwellian3D(n = (1,None))
         perturbation:
-            type: ModesCos #perturbations.ModesCos(comp = 0)
+            type: ModesCos 
             ModesCos:
-                comps:
-                    n: '0'
-                #Check
-                ls: #perturbations.ModeCos(ns = 1)
-                    n: [1]
+                comps: 
+                    n: '0' #perturbations.ModesCos(comp = 0)
+                ls: 
+                    n: [1] #perturbations.ModeCos(ls = 1)
                 amps:
-                    n: [0.001]  #perturbations.ModesCos(amps = 0.001)
+                    n: [0.001] #perturbations.ModesCos(amps = 0.001)

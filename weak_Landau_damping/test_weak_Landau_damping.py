@@ -8,6 +8,11 @@ from matplotlib import pyplot as plt
 
 do_plot = True
 
+#analytical result
+gamma = None
+def E_exact(t,eps, k, r, omega, phi):
+    return 16 * eps**2 * r**2 * xp.exp(2 * gamma * t) * 2 * xp.pi * xp.cos(omega * t - phi) ** 2 / 2
+
 #get parameters
 dt = damping_params.time_opts.dt
 algo = damping_params.time_opts.split_algo
@@ -42,8 +47,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
         plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
         plt.xlabel("time [m/c]")
         plt.ylabel("log(E)")
-        plt.plot(t_maxima[:5], maxima[:5], "r")
-        plt.plot(t_maxima[:5], maxima[:5], "or", markersize=10)
+        # plt.plot(t_maxima, maxima, "o-r", markersize=10)
 
-        plt.savefig("weak_landau_damping_test")
+        plt.savefig("test_weak_Landau")
         # plt.show()
