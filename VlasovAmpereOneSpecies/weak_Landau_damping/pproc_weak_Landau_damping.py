@@ -54,6 +54,45 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 path = os.path.join(os.getcwd(), "sim_data")
 main.pproc(path=path)
 
-
 # get sim data
 simdata = main.load_data(path=path)
+
+# plot in e1-v1
+e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
+v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
+f_init = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][0]
+df_init = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][0]
+f_end = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][-1]
+df_end = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][-1]
+
+plt.figure(figsize=(14, 10))
+
+plt.subplot(2, 2, 1)
+plt.pcolor(e1_bins, v1_bins, f_init.T)
+plt.xlabel("$\eta_1$")
+plt.ylabel("$v_x$")
+plt.title("Initial Maxwellian")
+plt.colorbar()
+
+plt.subplot(2, 2, 2)
+plt.pcolor(e1_bins, v1_bins, df_init.T)
+plt.xlabel("$\eta_1$")
+plt.ylabel("$v_x$")
+plt.title("Initial perturbation")
+plt.colorbar()
+
+plt.subplot(2, 2, 3)
+plt.pcolor(e1_bins, v1_bins, f_end.T)
+plt.xlabel("$\eta_1$")
+plt.ylabel("$v_x$")
+plt.title("Final Maxwellian")
+plt.colorbar()
+
+plt.subplot(2, 2, 4)
+plt.pcolor(e1_bins, v1_bins, df_end.T)
+plt.xlabel("$\eta_1$")
+plt.ylabel("$v_x$")
+plt.title("Final perturbation")
+plt.colorbar()
+
+plt.show()
