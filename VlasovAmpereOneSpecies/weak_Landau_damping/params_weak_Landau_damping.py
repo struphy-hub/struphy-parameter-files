@@ -23,13 +23,13 @@ from struphy import main
 from struphy.models.kinetic import VlasovAmpereOneSpecies
 
 # environment options
-env = EnvironmentOptions(sim_folder="weak_Landau")
+env = EnvironmentOptions(sim_folder="sim_data")
 
 # units
 base_units = BaseUnits()
 
 # time stepping
-time_opts = Time(dt = 0.05, Tend = 30.0, split_algo = "LieTrotter")
+time_opts = Time(dt = 0.05, Tend = 20.0, split_algo = "LieTrotter")
 
 # geometry
 domain = domains.Cuboid(r1 = 12.56)
