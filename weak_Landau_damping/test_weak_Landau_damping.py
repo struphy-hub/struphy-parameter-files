@@ -49,5 +49,5 @@ if MPI.COMM_WORLD.Get_rank() == 0:
         plt.ylabel("log(E)")
         # plt.plot(t_maxima, maxima, "o-r", markersize=10)
 
-        plt.savefig("test_weak_Landau")
-        # plt.show()
+        # plt.savefig("test_weak_Landau")
+        plt.show()
