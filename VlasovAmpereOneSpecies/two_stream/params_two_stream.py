@@ -25,7 +25,7 @@ from struphy.models.kinetic import VlasovAmpereOneSpecies
 
 # environment options
 env = EnvironmentOptions(sim_folder="sim_data")
-
+# 
 # units
 base_units = BaseUnits()
 
@@ -79,7 +79,7 @@ model.kinetic_ions.var.add_background(background)
 # if .add_initial_condition is not called, the background is the kinetic initial condition
 perturbation = perturbations.ModesCos(amps = (0.001,), ls = (1,))
 init1 = maxwellians.Maxwellian3D(n = (0.5,perturbation), u1 = (3.0,None)) 
-init2 = maxwellians.Maxwellian3D(n = (0.5,None), u1 = (-3.0,None))
+init2 = maxwellians.Maxwellian3D(n = (0.5,perturbation), u1 = (-3.0,None))
 init = init1 + init2
 model.kinetic_ions.var.add_initial_condition(init)
 
