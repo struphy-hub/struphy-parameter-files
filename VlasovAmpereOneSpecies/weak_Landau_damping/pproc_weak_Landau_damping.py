@@ -7,12 +7,7 @@ from psydac.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
 from struphy import main
 
-
-# analytical result for electric energy
-gamma = None
-def E_exact(t,eps, k, r, omega, phi):
-    return 16 * eps**2 * r**2 * xp.exp(2 * gamma * t) * 2 * xp.pi * xp.cos(omega * t - phi) ** 2 / 2
-
+### Electric field progression ###
 # get parameters
 dt = damping_params.time_opts.dt
 algo = damping_params.time_opts.split_algo
@@ -49,7 +44,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     # plt.savefig("test_weak_Landau")
     plt.show()
       
-        
+### Binning distribution progression ###        
 # post process raw data
 path = os.path.join(os.getcwd(), "sim_data")
 main.pproc(path=path)
@@ -60,39 +55,34 @@ simdata = main.load_data(path=path)
 # plot in e1-v1
 e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
 v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
-f_init = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][0]
-df_init = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][0]
-f_end = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][-1]
-df_end = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][-1]
 
-plt.figure(figsize=(14, 10))
+nrows = 4
+ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
+time_indices = [int( i/(nrows-1) * (ntime - 1) ) for i in range(nrows)]
+time_title = ["initial"] + [f"{str(i)}/{str(nrows-1)} th partition" for i in range(1, nrows-1)] + ["final"]
 
-plt.subplot(2, 2, 1)
-plt.pcolor(e1_bins, v1_bins, f_init.T)
-plt.xlabel("$\eta_1$")
-plt.ylabel("$v_x$")
-plt.title("Initial Maxwellian")
-plt.colorbar()
+fig, axs = plt.subplots(nrows = nrows, ncols = 2, figsize = (14,10), sharex=True, sharey=True)
+for index in range(nrows):
+    ax_maxwellian, ax_perturbation = axs[index][0], axs[index][1]
+    time_index = time_indices[index]
 
-plt.subplot(2, 2, 2)
-plt.pcolor(e1_bins, v1_bins, df_init.T)
-plt.xlabel("$\eta_1$")
-plt.ylabel("$v_x$")
-plt.title("Initial perturbation")
-plt.colorbar()
+    #maxwellian distribution plot
+    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_index].T
+    pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
 
-plt.subplot(2, 2, 3)
-plt.pcolor(e1_bins, v1_bins, f_end.T)
-plt.xlabel("$\eta_1$")
-plt.ylabel("$v_x$")
-plt.title("Final Maxwellian")
-plt.colorbar()
+    ax_maxwellian.set_xlabel("$\eta_1$")
+    ax_maxwellian.set_ylabel("$v_x$")
+    ax_maxwellian.set_title(time_title[index] + " Maxwellian")
+    fig.colorbar(pcm, ax = ax_maxwellian)
 
-plt.subplot(2, 2, 4)
-plt.pcolor(e1_bins, v1_bins, df_end.T)
-plt.xlabel("$\eta_1$")
-plt.ylabel("$v_x$")
-plt.title("Final perturbation")
-plt.colorbar()
+    #perturbation plot
+    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][time_index].T
+    pcm = ax_perturbation.pcolor(e1_bins, v1_bins, color_mapped)
 
+    ax_perturbation.set_xlabel("$\eta_1$")
+    ax_perturbation.set_ylabel("$v_x$")
+    ax_perturbation.set_title(time_title[index] + " perturbation")
+    fig.colorbar(pcm, ax = ax_perturbation)
+
+plt.tight_layout()
 plt.show()
