@@ -56,33 +56,25 @@ simdata = main.load_data(path=path)
 e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
 v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
 
-nrows = 4
+nrows = 3
+ncols = 4
 ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
-time_indices = [int( i/(nrows-1) * (ntime - 1) ) for i in range(nrows)]
-time_title = ["initial"] + [f"{str(i)}/{str(nrows-1)} th partition" for i in range(1, nrows-1)] + ["final"]
+time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
-fig, axs = plt.subplots(nrows = nrows, ncols = 2, figsize = (14,10), sharex=True, sharey=True)
-for index in range(nrows):
-    ax_maxwellian, ax_perturbation = axs[index][0], axs[index][1]
-    time_index = time_indices[index]
+fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
+for i in range(nrows):
+    for j in range(ncols):
+        ax_maxwellian = axs[i][j]
+        time_idx = time_indices[j + i*ncols]
 
-    #maxwellian distribution plot
-    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_index].T
-    pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
+        #maxwellian distribution plot
+        color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_idx].T
+        pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
 
-    ax_maxwellian.set_xlabel("$\eta_1$")
-    ax_maxwellian.set_ylabel("$v_x$")
-    ax_maxwellian.set_title(time_title[index] + " Maxwellian")
-    fig.colorbar(pcm, ax = ax_maxwellian)
-
-    #perturbation plot
-    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][time_index].T
-    pcm = ax_perturbation.pcolor(e1_bins, v1_bins, color_mapped)
-
-    ax_perturbation.set_xlabel("$\eta_1$")
-    ax_perturbation.set_ylabel("$v_x$")
-    ax_perturbation.set_title(time_title[index] + " perturbation")
-    fig.colorbar(pcm, ax = ax_perturbation)
-
+        ax_maxwellian.set_xlabel(r"$\eta_1$")
+        ax_maxwellian.set_ylabel(r"$v_x$")
+        ax_maxwellian.set_title(f"t = {simdata.t_grid[time_idx]}")
+        fig.colorbar(pcm, ax = ax_maxwellian)
+        
 plt.tight_layout()
 plt.show()
