@@ -18,7 +18,7 @@ env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
 #analytical solution
-m, b = 0.2845, -8.2
+m, b = 0.2845, -5.3
 analytical = lambda x, m=m, b=b: m*x+b
 
 # get scalar data (post processing not needed for scalar data)
@@ -39,7 +39,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     # plot
     plt.figure(figsize=(18, 12))
     plt.plot(time, logE, label="numerical")
-    plt.plot(time, analytical(time), label = f"{m}*x {"+" if b>0 else "-"} {abs(b)}")
+    plt.plot(time, analytical(time), label = f"{m}*x {"+" if b>0 else "-"} {abs(b)}", linestyle = "--", color = "black")
     plt.legend()
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
     plt.xlabel("time [m/c]")
