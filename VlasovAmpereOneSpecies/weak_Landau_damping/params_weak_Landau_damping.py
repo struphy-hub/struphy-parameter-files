@@ -1,7 +1,7 @@
 """
 Parameter file of weak Landau damping implemented using VlasovAmpereOneSpecies model
+(ModeCos perturbation amplitude = 0.001)
 """
-import os
 
 from struphy.io.options import EnvironmentOptions, BaseUnits, Time
 from struphy.geometry import domains

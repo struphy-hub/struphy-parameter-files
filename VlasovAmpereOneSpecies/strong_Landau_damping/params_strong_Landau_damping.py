@@ -1,5 +1,6 @@
 """
 Parameter file of strong Landau damping implemented using VlasovAmpereOneSpecies model
+(ModeCos perturbation amplitude = 0.5)
 """
 
 from struphy.io.options import EnvironmentOptions, BaseUnits, Time

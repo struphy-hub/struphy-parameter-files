@@ -2,7 +2,6 @@
 Parameter file of bump on instability implemented using VlasovAmpereOneSpecies model
 (perturbation wave number "k" = 0.1, initial stream velocity v1 = 3, v2 = -4.5)
 """
-import os
 
 from struphy.io.options import EnvironmentOptions, BaseUnits, Time
 from struphy.geometry import domains
