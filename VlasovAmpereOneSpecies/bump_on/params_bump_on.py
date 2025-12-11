@@ -78,8 +78,8 @@ background = maxwellian_1 + maxwellian_2
 model.kinetic_ions.var.add_background(background)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
-perturbation = perturbations.ModesCos(amps = (0.005,), ls = (1,))
-init1 = maxwellians.Maxwellian3D(n=(9/10, perturbation), u1 = (3.0, None))
+perturbation = perturbations.ModesCos(amps = (0.05,), ls = (1,))
+init1 = maxwellians.Maxwellian3D(n=(9/10, None), u1 = (3.0, None))
 init2 = maxwellians.Maxwellian3D(n = (1/10,perturbation), u1 = (-4.5,None), vth1 = (0.5,None))
 init = init1 + init2
 model.kinetic_ions.var.add_initial_condition(init)

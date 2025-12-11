@@ -17,6 +17,10 @@ p = damping_params.derham_opts.p
 env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
+#analytical solution
+m, b = 0.2845, -8.2
+analytical = lambda x, m=m, b=b: m*x+b
+
 # get scalar data (post processing not needed for scalar data)
 if MPI.COMM_WORLD.Get_rank() == 0:
     pa_data = os.path.join(env.path_out, "data")
@@ -35,11 +39,15 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     # plot
     plt.figure(figsize=(18, 12))
     plt.plot(time, logE, label="numerical")
+    plt.plot(time, analytical(time), label = f"{m}*x {"+" if b>0 else "-"} {abs(b)}")
     plt.legend()
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
     plt.xlabel("time [m/c]")
     plt.ylabel("log(E)")
     # plt.plot(t_maxima, maxima, "o-r", markersize=10)
+
+    plt.xlim(0,50)
+    plt.ylim(-10,8)
 
     # plt.savefig("test_weak_Landau")
     plt.show()
