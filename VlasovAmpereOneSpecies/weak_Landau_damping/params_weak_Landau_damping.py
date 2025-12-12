@@ -1,6 +1,6 @@
 """
 Parameter file of weak Landau damping implemented using VlasovAmpereOneSpecies model
-(ModeCos perturbation amplitude = 0.001)
+(ModeCos perturbation amplitude = 0.001, k = 0.5)
 """
 
 from struphy.io.options import EnvironmentOptions, BaseUnits, Time
@@ -32,7 +32,7 @@ base_units = BaseUnits()
 time_opts = Time(dt = 0.05, Tend = 20.0, split_algo = "LieTrotter")
 
 # geometry
-domain = domains.Cuboid(r1 = 12.56)
+domain = domains.Cuboid(r1 = 12.56) # r1 -> pi * 4 -> k = 0.5
 
 # fluid equilibrium (can be used as part of initial conditions)
 equil = None

@@ -68,12 +68,13 @@ v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
 nrows = 4
 ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
 time_indices = [int( i/(nrows-1) * (ntime - 1) ) for i in range(nrows)]
-time_title = ["initial"] + [f"{str(i)}/{str(nrows-1)} th partition" for i in range(1, nrows-1)] + ["final"]
 
 fig, axs = plt.subplots(nrows = nrows, ncols = 2, figsize = (14,10), sharex=True, sharey=True)
 for index in range(nrows):
     ax_maxwellian, ax_perturbation = axs[index][0], axs[index][1]
     time_index = time_indices[index]
+    ax_title = f"t = {simdata.t_grid[time_index]} ms"
+
 
     #maxwellian distribution plot
     color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_index].T
@@ -81,7 +82,7 @@ for index in range(nrows):
 
     ax_maxwellian.set_xlabel(r"$\eta_1$")
     ax_maxwellian.set_ylabel(r"$v_x$")
-    ax_maxwellian.set_title(time_title[index] + " Maxwellian")
+    ax_maxwellian.set_title(ax_title + " Maxwellian")
     fig.colorbar(pcm, ax = ax_maxwellian)
 
     #perturbation plot
@@ -90,7 +91,7 @@ for index in range(nrows):
 
     ax_perturbation.set_xlabel(r"$\eta_1$")
     ax_perturbation.set_ylabel(r"$v_x$")
-    ax_perturbation.set_title(time_title[index] + " perturbation")
+    ax_perturbation.set_title(ax_title + " perturbation")
     fig.colorbar(pcm, ax = ax_perturbation)
 
 plt.tight_layout()
