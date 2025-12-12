@@ -3,9 +3,10 @@ import params_weak_Landau_damping as damping_params
 import os
 import cunumpy as xp
 import h5py
-from psydac.ddm.mpi import mpi as MPI
+from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
 from struphy import main
+from struphy.io.options import Units
 
 ### Electric field progression ###
 # get parameters
@@ -16,6 +17,19 @@ p = damping_params.derham_opts.p
 
 env = damping_params.env
 ppc = damping_params.loading_params.ppc
+
+# get units
+units = Units(damping_params.base_units)
+model = damping_params.model
+model.units = units
+A_bulk = model.bulk_species.mass_number
+Z_bulk = model.bulk_species.charge_number
+model.units.derive_units(
+        velocity_scale=model.velocity_scale,
+        A_bulk=A_bulk,
+        Z_bulk=Z_bulk,
+    )
+unit_t = model.units.t
 
 def E_exact(t):
     eps = damping_params.perturbation._amps[0]
@@ -29,7 +43,7 @@ def E_exact(t):
 if MPI.COMM_WORLD.Get_rank() == 0:
     pa_data = os.path.join(env.path_out, "data")
     with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
-        time = f["time"]["value"][()]
+        time = f["time"]["value"][()]*unit_t
         E = f["scalar"]["en_E"][()]
     logE = xp.log10(E)
 
@@ -42,12 +56,13 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 
     # plot
     plt.figure(figsize=(18, 12))
-    plt.plot(time, logE, label="numerical")
-    plt.plot(time, xp.log10(E_exact(time)), linestyle = "--", color = "black", label = "analytical")
+    plt.plot(time, E, label="numerical")
+    plt.plot(time, E_exact(time/unit_t), linestyle = "--", color = "black", label = "analytical")
+    plt.yscale('log')
     plt.legend()
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
-    plt.xlabel("time [m/c]")
-    plt.ylabel("log(E)")
+    plt.xlabel("time [s]")
+    plt.ylabel("electric energy $E^2/2$ [a.u.]")
     # plt.plot(t_maxima, maxima, "o-r", markersize=10)
 
     # plt.savefig("test_weak_Landau")
@@ -82,7 +97,7 @@ for index in range(nrows):
 
     ax_maxwellian.set_xlabel(r"$\eta_1$")
     ax_maxwellian.set_ylabel(r"$v_x$")
-    ax_maxwellian.set_title(ax_title + " Maxwellian")
+    ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_index]*unit_t:4.2e} s")
     fig.colorbar(pcm, ax = ax_maxwellian)
 
     #perturbation plot
@@ -91,7 +106,7 @@ for index in range(nrows):
 
     ax_perturbation.set_xlabel(r"$\eta_1$")
     ax_perturbation.set_ylabel(r"$v_x$")
-    ax_perturbation.set_title(ax_title + " perturbation")
+    ax_perturbation.set_title(fr"$\delta f$ at t = {simdata.t_grid[time_index]*unit_t:4.2e} s")
     fig.colorbar(pcm, ax = ax_perturbation)
 
 plt.tight_layout()
