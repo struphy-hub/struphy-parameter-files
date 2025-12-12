@@ -29,7 +29,7 @@ env = EnvironmentOptions(sim_folder="sim_data")
 base_units = BaseUnits()
 
 # time stepping
-time_opts = Time(dt = 0.05, Tend = 20.0, split_algo = "LieTrotter")
+time_opts = Time(dt = 0.05, Tend = 75.0, split_algo = "LieTrotter")
 
 # geometry
 domain = domains.Cuboid(r1 = 12.56) # r1 -> pi * 4 -> k = 0.5
