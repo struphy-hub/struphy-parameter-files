@@ -18,7 +18,7 @@ env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
 def E_exact(t):
-    eps = 0.001
+    eps = damping_params.perturbation._amps[0]
     r = 0.3677
     omega_r = 1.4156
     omega_i = -0.1533

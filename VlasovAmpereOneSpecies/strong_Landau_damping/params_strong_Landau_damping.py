@@ -29,7 +29,7 @@ env = EnvironmentOptions(sim_folder="sim_data")
 base_units = BaseUnits()
 
 # time stepping
-time_opts = Time(dt = 0.05, Tend = 75.0, split_algo = "LieTrotter")
+time_opts = Time(dt = 0.05, Tend = 20.0, split_algo = "LieTrotter")
 
 # geometry
 domain = domains.Cuboid(r1 = 12.56)
@@ -44,7 +44,7 @@ grid = grids.TensorProductGrid(Nel = (32,1,1))
 derham_opts = DerhamOptions(p = (3,1,1))
 
 # light-weight model instance
-model = VlasovAmpereOneSpecies(with_B0 = False)
+model = VlasovAmpereOneSpecies()
 
 # species parameters
 model.kinetic_ions.set_phys_params(alpha=1.0, epsilon=-1.0)

@@ -17,6 +17,15 @@ p = damping_params.derham_opts.p
 env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
+def E_exact(t):
+    eps = damping_params.perturbation._amps[0]
+    print(eps)
+    r = 0.3677
+    omega_r = 1.4156
+    omega_i = -0.1533
+    phi = 0.5362
+    return (4*eps*r*xp.exp(omega_i * t) * xp.cos(omega_r * t - phi))**2 * xp.pi
+
 # get scalar data (post processing not needed for scalar data)
 if MPI.COMM_WORLD.Get_rank() == 0:
     pa_data = os.path.join(env.path_out, "data")
@@ -35,11 +44,12 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     # plot
     plt.figure(figsize=(18, 12))
     plt.plot(time, logE, label="numerical")
+    plt.plot(time, xp.log10(E_exact(time)), linestyle = "--", color = "black")
     plt.legend()
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
     plt.xlabel("time [m/c]")
     plt.ylabel("log(E)")
-    # plt.plot(t_maxima, maxima, "o-r", markersize=10)
+    plt.plot(t_maxima, maxima, "o-r", markersize=10)
 
     # plt.savefig("test_weak_Landau")
     plt.show()
