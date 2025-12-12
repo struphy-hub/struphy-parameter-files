@@ -17,15 +17,13 @@ p = damping_params.derham_opts.p
 env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
-gamma = -0.1533
-
 def E_exact(t):
     eps = 0.001
-    k = 0.5
     r = 0.3677
-    omega = 1.4156
+    omega_r = 1.4156
+    omega_i = -0.1533
     phi = 0.5362
-    return 16 * eps**2 * r**2 * xp.exp(2 * gamma * t) * 2 * xp.pi * xp.cos(omega * t - phi) ** 2 / 2
+    return (4*eps*r*xp.exp(omega_i * t) * xp.cos(omega_r * t - phi))**2 * xp.pi
 
 # get scalar data (post processing not needed for scalar data)
 if MPI.COMM_WORLD.Get_rank() == 0:
@@ -55,45 +53,45 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     # plt.savefig("test_weak_Landau")
     plt.show()
       
-# ### Binning distribution progression ###        
-# # post process raw data
-# path = os.path.join(os.getcwd(), "sim_data")
-# main.pproc(path=path)
+### Binning distribution progression ###        
+# post process raw data
+path = os.path.join(os.getcwd(), "sim_data")
+main.pproc(path=path)
 
-# # get sim data
-# simdata = main.load_data(path=path)
+# get sim data
+simdata = main.load_data(path=path)
 
-# # plot in e1-v1
-# e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
-# v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
+# plot in e1-v1
+e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
+v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
 
-# nrows = 4
-# ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
-# time_indices = [int( i/(nrows-1) * (ntime - 1) ) for i in range(nrows)]
-# time_title = ["initial"] + [f"{str(i)}/{str(nrows-1)} th partition" for i in range(1, nrows-1)] + ["final"]
+nrows = 4
+ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
+time_indices = [int( i/(nrows-1) * (ntime - 1) ) for i in range(nrows)]
+time_title = ["initial"] + [f"{str(i)}/{str(nrows-1)} th partition" for i in range(1, nrows-1)] + ["final"]
 
-# fig, axs = plt.subplots(nrows = nrows, ncols = 2, figsize = (14,10), sharex=True, sharey=True)
-# for index in range(nrows):
-#     ax_maxwellian, ax_perturbation = axs[index][0], axs[index][1]
-#     time_index = time_indices[index]
+fig, axs = plt.subplots(nrows = nrows, ncols = 2, figsize = (14,10), sharex=True, sharey=True)
+for index in range(nrows):
+    ax_maxwellian, ax_perturbation = axs[index][0], axs[index][1]
+    time_index = time_indices[index]
 
-#     #maxwellian distribution plot
-#     color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_index].T
-#     pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
+    #maxwellian distribution plot
+    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_index].T
+    pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
 
-#     ax_maxwellian.set_xlabel(r"$\eta_1$")
-#     ax_maxwellian.set_ylabel(r"$v_x$")
-#     ax_maxwellian.set_title(time_title[index] + " Maxwellian")
-#     fig.colorbar(pcm, ax = ax_maxwellian)
+    ax_maxwellian.set_xlabel(r"$\eta_1$")
+    ax_maxwellian.set_ylabel(r"$v_x$")
+    ax_maxwellian.set_title(time_title[index] + " Maxwellian")
+    fig.colorbar(pcm, ax = ax_maxwellian)
 
-#     #perturbation plot
-#     color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][time_index].T
-#     pcm = ax_perturbation.pcolor(e1_bins, v1_bins, color_mapped)
+    #perturbation plot
+    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][time_index].T
+    pcm = ax_perturbation.pcolor(e1_bins, v1_bins, color_mapped)
 
-#     ax_perturbation.set_xlabel(r"$\eta_1$")
-#     ax_perturbation.set_ylabel(r"$v_x$")
-#     ax_perturbation.set_title(time_title[index] + " perturbation")
-#     fig.colorbar(pcm, ax = ax_perturbation)
+    ax_perturbation.set_xlabel(r"$\eta_1$")
+    ax_perturbation.set_ylabel(r"$v_x$")
+    ax_perturbation.set_title(time_title[index] + " perturbation")
+    fig.colorbar(pcm, ax = ax_perturbation)
 
-# plt.tight_layout()
-# plt.show()
+plt.tight_layout()
+plt.show()
