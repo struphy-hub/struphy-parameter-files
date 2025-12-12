@@ -6,7 +6,7 @@ import h5py
 from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
 from struphy import main
-
+from struphy.io.options import Units
 ### Electric field progression ###
 # get parameters
 dt = damping_params.time_opts.dt
@@ -17,23 +17,36 @@ p = damping_params.derham_opts.p
 env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
+# get units
+units = Units(damping_params.base_units)
+model = damping_params.model
+model.units = units
+A_bulk = model.bulk_species.mass_number
+Z_bulk = model.bulk_species._charge_number
+model.units.derive_units(
+    velocity_scale=model.velocity_scale,
+    A_bulk=A_bulk,
+    Z_bulk=Z_bulk
+)
+unit_t = model.units.t
+
 # get scalar data (post processing not needed for scalar data)
 if MPI.COMM_WORLD.Get_rank() == 0:
     pa_data = os.path.join(env.path_out, "data")
     with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
         time = f["time"]["value"][()]
         E = f["scalar"]["en_E"][()]
-    logE = xp.log10(E)
 
     # plot
     plt.figure(figsize=(18, 12))
-    plt.plot(time, logE, label="numerical")
+    plt.plot(time, E, label="numerical")
+    plt.yscale("log")
     plt.legend()
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
-    plt.xlabel("time [m/c]")
-    plt.ylabel("log(E)")
+    plt.xlabel("time [s]")
+    plt.ylabel("electric energy $E^2/2$ [a.u.]")
 
-    # plt.savefig("test_weak_Landau")
+    # plt.savefig("test_strong_Landau")
     plt.show()
       
 ### Binning distribution progression ###        
@@ -65,7 +78,7 @@ for i in range(nrows):
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")
         ax_maxwellian.set_ylabel(r"$v_x$")
-        ax_maxwellian.set_title(f"t = {simdata.t_grid[time_idx]}")
+        ax_maxwellian.set_title(f"t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
         fig.colorbar(pcm, ax = ax_maxwellian)
 
 plt.tight_layout()
