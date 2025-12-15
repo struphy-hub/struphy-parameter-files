@@ -6,6 +6,7 @@ import h5py
 from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
 from struphy import main
+from struphy.io.options import Units
 
 ### Electric field progression ###
 # get parameters
@@ -17,39 +18,41 @@ p = damping_params.derham_opts.p
 env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
+# get units
+units = Units(damping_params.base_units)
+model = damping_params.model
+model.units = units
+A_bulk = model.bulk_species.mass_number
+Z_bulk = model.bulk_species.charge_number
+model.units.derive_units(
+        velocity_scale=model.velocity_scale,
+        A_bulk=A_bulk,
+        Z_bulk=Z_bulk,
+    )
+unit_t = model.units.t
+
 #analytical solution
-m, b = 0.2845, -5.3
-analytical = lambda x, m=m, b=b: m*x+b
+m, b = 0.2845/unit_t, -5.3 # 0.2845 is determined from m/c time unit
+analytical = lambda x, m=m, b=b: 10**(m*x+b)
 
 # get scalar data (post processing not needed for scalar data)
 if MPI.COMM_WORLD.Get_rank() == 0:
     pa_data = os.path.join(env.path_out, "data")
     with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
-        time = f["time"]["value"][()]
+        time = f["time"]["value"][()]*unit_t
         E = f["scalar"]["en_E"][()]
-    logE = xp.log10(E)
-
-    # find where time derivative of E is zero
-    dEdt = (xp.roll(logE, -1) - xp.roll(logE, 1))[1:-1] / (2.0 * dt)
-    zeros = dEdt * xp.roll(dEdt, -1) < 0.0
-    maxima_inds = xp.logical_and(zeros, dEdt > 0.0)
-    maxima = logE[1:-1][maxima_inds]
-    t_maxima = time[1:-1][maxima_inds]
 
     # plot
     plt.figure(figsize=(18, 12))
-    plt.plot(time, logE, label="numerical")
-    plt.plot(time, analytical(time), label = f"{m}*x {"+" if b>0 else "-"} {abs(b)}", linestyle = "--", color = "black")
+    plt.plot(time, E, label="numerical")
+    plt.plot(time, analytical(time), label = fr"10^({m:.2e}·x {'+' if b > 0 else '-'} {abs(b):.2})", linestyle = "--", color = "black")
+    plt.yscale("log")
     plt.legend()
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
-    plt.xlabel("time [m/c]")
-    plt.ylabel("log(E)")
-    # plt.plot(t_maxima, maxima, "o-r", markersize=10)
+    plt.xlabel("time [s]")
+    plt.ylabel("electric energy $E^2/2$ [a.u.]")
 
-    plt.xlim(0,50)
-    plt.ylim(-10,8)
-
-    # plt.savefig("test_weak_Landau")
+    # plt.savefig("test_two_stream")
     plt.show()
       
 ### Binning distribution progression ###        
@@ -81,7 +84,7 @@ for i in range(nrows):
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")
         ax_maxwellian.set_ylabel(r"$v_x$")
-        ax_maxwellian.set_title(f"t = {simdata.t_grid[time_idx]}")
+        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e}")
         fig.colorbar(pcm, ax = ax_maxwellian)
         
 plt.tight_layout()
