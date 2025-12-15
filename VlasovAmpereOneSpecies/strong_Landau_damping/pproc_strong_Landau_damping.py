@@ -7,6 +7,7 @@ from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
 from struphy import main
 from struphy.io.options import Units
+
 ### Electric field progression ###
 # get parameters
 dt = damping_params.time_opts.dt
