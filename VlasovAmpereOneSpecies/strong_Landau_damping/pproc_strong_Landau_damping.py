@@ -78,7 +78,7 @@ for i in range(nrows):
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")
         ax_maxwellian.set_ylabel(r"$v_x$")
-        ax_maxwellian.set_title(f"t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
+        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
         fig.colorbar(pcm, ax = ax_maxwellian)
 
 plt.tight_layout()
