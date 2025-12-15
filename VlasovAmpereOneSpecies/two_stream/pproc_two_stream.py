@@ -88,3 +88,18 @@ for i in range(nrows):
         
 plt.tight_layout()
 plt.show()
+
+save_video_pngs = False
+if save_video_pngs:
+    # create .png for video
+    jump = 2
+    fig = plt.figure(figsize=(8, 8))
+    for n in range(ntime):
+        if n % jump == 0:
+            color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][n].T
+            plt.pcolor(e1_bins, v1_bins, color_mapped)
+            
+            plt.xlabel("position [a.u.]")
+            plt.ylabel("velocity [a.u.]")
+            plt.title(fr"full-$f$ at t = {simdata.t_grid[n]*unit_t:4.2e} s")
+            plt.savefig(f"video/fig_{n:04.0f}.png", transparent=False, bbox_inches='tight', pad_inches=0)
