@@ -52,7 +52,6 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.xlabel("time [s]")
     plt.ylabel("electric energy $E^2/2$ [a.u.]")
 
-    # plt.savefig("test_two_stream")
     plt.show()
       
 ### Binning distribution progression ###        
@@ -84,7 +83,7 @@ for i in range(nrows):
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")
         ax_maxwellian.set_ylabel(r"$v_x$")
-        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e}")
+        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
         fig.colorbar(pcm, ax = ax_maxwellian)
         
 plt.tight_layout()

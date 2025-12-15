@@ -63,9 +63,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
     plt.xlabel("time [s]")
     plt.ylabel("electric energy $E^2/2$ [a.u.]")
-    # plt.plot(t_maxima, maxima, "o-r", markersize=10)
 
-    # plt.savefig("test_weak_Landau")
     plt.show()
       
 ### Binning distribution progression ###        

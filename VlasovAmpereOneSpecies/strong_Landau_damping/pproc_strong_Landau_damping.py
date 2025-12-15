@@ -46,7 +46,6 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.xlabel("time [s]")
     plt.ylabel("electric energy $E^2/2$ [a.u.]")
 
-    # plt.savefig("test_strong_Landau")
     plt.show()
       
 ### Binning distribution progression ###        
