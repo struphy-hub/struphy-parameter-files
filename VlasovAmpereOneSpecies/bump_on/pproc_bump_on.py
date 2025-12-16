@@ -1,10 +1,11 @@
-import params_bump_on as damping_params
-
 import os
+
 import cunumpy as xp
 import h5py
+import params_bump_on as damping_params
 from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
+
 from struphy import main
 from struphy.io.options import Units
 
@@ -19,7 +20,7 @@ simdata = main.load_data(path=path)
 v1_bins = simdata.f["kinetic_ions"]["v1"]["grid_v1"]
 f_v1 = simdata.f["kinetic_ions"]["v1"]["f_binned"]
 
-fig, ax = plt.subplots(1 ,figsize = (14,10))
+fig, ax = plt.subplots(1, figsize=(14, 10))
 
 ax.plot(v1_bins, f_v1[0])
 ax.set_xlabel("Velocity v")
@@ -38,24 +39,20 @@ p = damping_params.derham_opts.p
 env = damping_params.env
 ppc = damping_params.loading_params.ppc
 
-#get units
+# get units
 units = Units(damping_params.base_units)
 model = damping_params.model
 model.units = units
 A_bulk = model.bulk_species.mass_number
 Z_bulk = model.bulk_species.charge_number
-model.units.derive_units(
-    velocity_scale = model.velocity_scale,
-    A_bulk = A_bulk,
-    Z_bulk = Z_bulk
-)
+model.units.derive_units(velocity_scale=model.velocity_scale, A_bulk=A_bulk, Z_bulk=Z_bulk)
 unit_t = model.units.t
 
 # get scalar data (post processing not needed for scalar data)
 if MPI.COMM_WORLD.Get_rank() == 0:
     pa_data = os.path.join(env.path_out, "data")
     with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
-        time = f["time"]["value"][()]*unit_t
+        time = f["time"]["value"][()] * unit_t
         E = f["scalar"]["en_E"][()]
 
     # plot
@@ -67,30 +64,30 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.xlabel("time [s]")
     plt.ylabel("electric energy $E^2/2$ [a.u.]")
 
-    plt.show()      
+    plt.show()
 
-### Binning distribution progression ###      
+### Binning distribution progression ###
 e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
-v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]  
+v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
 nrows = 3
 ncols = 4
-ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
-time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
+ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"])
+time_indices = [int(i / (nrows * ncols - 1) * (ntime - 1)) for i in range(nrows * ncols)]
 
-fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
+fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14, 10), sharex=True, sharey=True)
 for i in range(nrows):
     for j in range(ncols):
         ax_maxwellian = axs[i][j]
-        time_idx = time_indices[j + i*ncols]
+        time_idx = time_indices[j + i * ncols]
 
-        #maxwellian distribution plot
+        # maxwellian distribution plot
         color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_idx].T
-        pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
+        pcm = ax_maxwellian.pcolor(e1_bins, v1_bins, color_mapped)
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")
         ax_maxwellian.set_ylabel(r"$v_x$")
-        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
-        fig.colorbar(pcm, ax = ax_maxwellian)
-        
+        ax_maxwellian.set_title(rf"full-$f$ at t = {simdata.t_grid[time_idx] * unit_t:4.2e} s")
+        fig.colorbar(pcm, ax=ax_maxwellian)
+
 plt.tight_layout()
 plt.show()
