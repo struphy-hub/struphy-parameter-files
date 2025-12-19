@@ -29,20 +29,23 @@ import cunumpy as xp
 k = 1.25
 beta = -1e-4
 
+vth1_background_val = 0.02/xp.sqrt(2)
+vth2_background_val = vth1_background_val * xp.sqrt(12)
+
 # environment options
-env = EnvironmentOptions(sim_folder="sim_data")
+env = EnvironmentOptions(sim_folder="sim_data", save_step = 1)
 
 # units
 base_units = BaseUnits()
 
 # time stepping
-time_opts = Time(dt = 0.05, Tend = 100, split_algo = "LieTrotter")
+time_opts = Time(dt = 0.05, Tend = 5, split_algo = "Strang")
 
 # geometry
 domain = domains.Cuboid(r1 = 2*xp.pi/k)
 
 # fluid equilibrium (can be used as part of initial conditions)
-equil = equils.HomogenSlab()
+equil = None
 
 # grid
 grid = grids.TensorProductGrid(Nel = (32,1,1))
@@ -55,7 +58,7 @@ model = VlasovMaxwellOneSpecies()
 # species parameters
 model.kinetic_ions.set_phys_params(alpha = 1, epsilon = -1)
 
-loading_params = LoadingParameters(ppc = 1_000)
+loading_params = LoadingParameters(Np = 100_000, moments=(0,0,0,vth1_background_val,vth2_background_val,1))
 weights_params = WeightsParameters(control_variate = True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -64,8 +67,8 @@ model.kinetic_ions.set_markers(loading_params=loading_params,
                                bufsize = 0.4)
 model.kinetic_ions.set_sorting_boxes(boxes_per_dim = (16,1,1), do_sort = True)
 
-binplot_1 = BinningPlot(slice="e1_v1", n_bins= (128, 128), ranges= ((0.,1.), (-1.5,1.5))) #for initial velocity distribution
-binplot_2 = BinningPlot(slice = "v1", n_bins = 128, ranges = (-1.5,1.5)) # for progression of velocity and space distribution
+binplot_1 = BinningPlot(slice="e1_v1", n_bins= (128, 128), ranges= ((0.,1.), (-0.1,0.1))) 
+binplot_2 = BinningPlot(slice = "v1", n_bins = 128, ranges = (-0.1,0.1))
 model.kinetic_ions.set_save_data(binning_plots=(binplot_1, binplot_2))
 
 # propagator options
@@ -76,19 +79,17 @@ model.propagators.coupling_va.options = model.propagators.coupling_va.Options()
 model.initial_poisson.options = model.initial_poisson.Options(stab_mat="M0")
 
 # background, perturbations and initial conditions
-model.em_fields.b_field.add_perturbation(perturbation = perturbations.ModesCos(amps=(beta,), ls = (1,)))
+model.em_fields.b_field.add_perturbation(perturbation = perturbations.ModesCos(amps=(beta,), ls = (1,), comp = 2)) # Initial Bz depending on x-axis
 
-vth1_background_val = 0.02/xp.sqrt(2)
-vth2_background_val = vth1_background_val * xp.sqrt(12)
-maxwellian = maxwellians.Maxwellian3D(n=(1.0, None), 
+maxwellian = maxwellians.Maxwellian3D(
                     vth1= (vth1_background_val, None) , vth2= (vth2_background_val, None)
                 )
 model.kinetic_ions.var.add_background(maxwellian)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
-perturbation = perturbations.ModesCos(amps = (0,), ls = (1,))
-maxwellian_pt = maxwellians.Maxwellian3D(n=(1.0, None), 
-                vth1= (vth1_background_val, perturbation), vth2= (vth2_background_val, perturbation)
+perturbation = perturbations.ModesCos(amps = (1e-4,), ls = (1,))
+maxwellian_pt = maxwellians.Maxwellian3D(n=(1.0, perturbation), 
+                vth1= (vth1_background_val, None), vth2= (vth2_background_val, None)
                 )
 model.kinetic_ions.var.add_initial_condition(maxwellian_pt)
 
