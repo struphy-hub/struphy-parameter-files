@@ -33,13 +33,13 @@ vth1_background_val = 0.02/xp.sqrt(2)
 vth2_background_val = vth1_background_val * xp.sqrt(12)
 
 # environment options
-env = EnvironmentOptions(sim_folder="sim_data", save_step = 1)
+env = EnvironmentOptions(sim_folder="sim_data", save_step = 50)
 
 # units
 base_units = BaseUnits()
 
 # time stepping
-time_opts = Time(dt = 0.05, Tend = 5, split_algo = "Strang")
+time_opts = Time(dt = 0.05, Tend = 5_000, split_algo = "Strang")
 
 # geometry
 domain = domains.Cuboid(r1 = 2*xp.pi/k)
@@ -58,7 +58,7 @@ model = VlasovMaxwellOneSpecies()
 # species parameters
 model.kinetic_ions.set_phys_params(alpha = 1, epsilon = -1)
 
-loading_params = LoadingParameters(Np = 100_000, moments=(0,0,0,vth1_background_val,vth2_background_val,1))
+loading_params = LoadingParameters(Np = 1_000, moments=(0,0,0,vth1_background_val,vth2_background_val,1))
 weights_params = WeightsParameters(control_variate = True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -71,15 +71,15 @@ binplot_1 = BinningPlot(slice="e1_v1", n_bins= (128, 128), ranges= ((0.,1.), (-0
 binplot_2 = BinningPlot(slice = "v1", n_bins = 128, ranges = (-0.1,0.1))
 model.kinetic_ions.set_save_data(binning_plots=(binplot_1, binplot_2))
 
+# background, perturbations and initial conditions
+model.em_fields.b_field.add_perturbation(perturbation = perturbations.ModesCos(amps=(beta,), ls = (1,), comp = 2)) # Initial Bz depending on x-axis
+
 # propagator options
 model.propagators.maxwell.options = model.propagators.maxwell.Options()
 model.propagators.push_eta.options = model.propagators.push_eta.Options()
-model.propagators.push_vxb.options = model.propagators.push_vxb.Options(b2_var=model.em_fields.b_field)
+model.propagators.push_vxb.options = model.propagators.push_vxb.Options(b2_var=None)
 model.propagators.coupling_va.options = model.propagators.coupling_va.Options()
 model.initial_poisson.options = model.initial_poisson.Options(stab_mat="M0")
-
-# background, perturbations and initial conditions
-model.em_fields.b_field.add_perturbation(perturbation = perturbations.ModesCos(amps=(beta,), ls = (1,), comp = 2)) # Initial Bz depending on x-axis
 
 maxwellian = maxwellians.Maxwellian3D(
                     vth1= (vth1_background_val, None) , vth2= (vth2_background_val, None)
@@ -87,7 +87,7 @@ maxwellian = maxwellians.Maxwellian3D(
 model.kinetic_ions.var.add_background(maxwellian)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
-perturbation = perturbations.ModesCos(amps = (1e-4,), ls = (1,))
+perturbation = perturbations.ModesCos(amps = (0,), ls = (1,))
 maxwellian_pt = maxwellians.Maxwellian3D(n=(1.0, perturbation), 
                 vth1= (vth1_background_val, None), vth2= (vth2_background_val, None)
                 )

@@ -74,27 +74,26 @@ def field_energy(field) -> float:
 
 E_1_energy = tuple(field_energy(simdata.spline_values["em_fields"]["e_field_log"][t][0]) for t in Nt)
 E_2_energy = tuple(field_energy(simdata.spline_values["em_fields"]["e_field_log"][t][1]) for t in Nt)
-# E_3_energy = tuple(field_energy(simdata.spline_values["em_fields"]["e_field_log"][t][2]) for t in Nt)
+E_3_energy = tuple(field_energy(simdata.spline_values["em_fields"]["e_field_log"][t][2]) for t in Nt)
 
-# B_1_energy = tuple(field_energy(simdata.spline_values["em_fields"]["b_field_log"][t][0]) for t in Nt)
-# B_2_energy = tuple(field_energy(simdata.spline_values["em_fields"]["b_field_log"][t][1]) for t in Nt)
+B_1_energy = tuple(field_energy(simdata.spline_values["em_fields"]["b_field_log"][t][0]) for t in Nt)
+B_2_energy = tuple(field_energy(simdata.spline_values["em_fields"]["b_field_log"][t][1]) for t in Nt)
 B_3_energy = tuple(field_energy(simdata.spline_values["em_fields"]["b_field_log"][t][2]) for t in Nt)
 
 fig, ax = plt.subplots(1, figsize = (8,6))
 
 ax.plot(simdata.t_grid, E_1_energy, label = r"$\frac{||E_1||^2}{2}$")
 ax.plot(simdata.t_grid, E_2_energy, label = r"$\frac{||E_2||^2}{2}$")
-# ax.plot(simdata.t_grid, E_3_energy, label = r"$\frac{||E_3||^2}{2}$")
+ax.plot(simdata.t_grid, E_3_energy, label = r"$\frac{||E_3||^2}{2}$")
 
-# ax.plot(simdata.t_grid, B_1_energy, label = r"$\frac{||B_1||^2}{2}$")
-# ax.plot(simdata.t_grid, B_2_energy, label = r"$\frac{||B_2||^2}{2}$")
+ax.plot(simdata.t_grid, B_1_energy, label = r"$\frac{||B_1||^2}{2}$")
+ax.plot(simdata.t_grid, B_2_energy, label = r"$\frac{||B_2||^2}{2}$")
 ax.plot(simdata.t_grid, B_3_energy, label = r"$\frac{||B_3||^2}{2}$")
 
 ax.set_xlabel("Time")
 ax.set_ylabel("Energy")
 
 ax.legend()
-
 ax.set_yscale("log")
 
 plt.show()
@@ -109,7 +108,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 
     # plot
     plt.figure(figsize=(18, 12))
-    plt.plot(time, E/2, label="E")
+    plt.plot(time, E, label="E")
     plt.plot(time, B, label = "B")
     plt.legend()
     plt.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
@@ -117,6 +116,8 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.yscale("log")
     plt.xlabel("time [s]")
     plt.ylabel("electric energy $E^2/2$ [a.u.]")
+
+    plt.xlim(0,0.75 * 1e-5)
 
     plt.show()      
 
