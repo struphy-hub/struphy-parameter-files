@@ -37,24 +37,6 @@ model.units.derive_units(
 )
 unit_t = model.units.t
 
-# ### Initial EM-field ###
-# eta_1 = simdata.grids_log[0]
-
-# init_electric_field_1 = simdata.spline_values["em_fields"]["e_field_log"][0][0] # Initial electric field along eta1-axis solved from Poisson's equation
-# init_magnetic_field_3 = simdata.spline_values["em_fields"]["b_field_log"][0][2] # Initial magnetic field along z-axis as defined by perturbation
-
-# fig, axs = plt.subplots(nrows = 2, ncols = 1, figsize = (8,6), sharex = True, sharey = True)
-
-# axs[0].plot(simdata.grids_log[0], init_electric_field_1[:,0,0])
-# axs[0].set_ylabel(r"$E_1$")
-
-# axs[1].plot(simdata.grids_log[0], init_magnetic_field_3[:,0,0])
-# axs[1].set_ylabel(r"$B_3$")
-# axs[1].set_xlabel(r"$\eta_1$")
-
-# fig.suptitle(r"Initial EM-field strength along $\eta_1$")
-# # plt.show()
-
 ### Progression of energy in EM-field along different directions ###
 Nel = tuple(el - 1 for el in simdata.grids_phy[0].shape)
 
@@ -69,8 +51,6 @@ def field_energy(field) -> float:
     energy_square = xp.sum(field ** 2)
 
     return energy_square * unit_volume / 2
-
-
 
 E_1_energy = tuple(field_energy(simdata.spline_values["em_fields"]["e_field_log"][t][0]) for t in Nt)
 E_2_energy = tuple(field_energy(simdata.spline_values["em_fields"]["e_field_log"][t][1]) for t in Nt)
@@ -120,29 +100,3 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.xlim(0,0.75 * 1e-5)
 
     plt.show()      
-
-# ### Binning distribution progression ###      
-# e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
-# v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]  
-# nrows = 3
-# ncols = 4
-# ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
-# time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
-
-# fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
-# for i in range(nrows):
-#     for j in range(ncols):
-#         ax_maxwellian = axs[i][j]
-#         time_idx = time_indices[j + i*ncols]
-
-#         #maxwellian distribution plot
-#         color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_idx].T
-#         pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
-
-#         ax_maxwellian.set_xlabel(r"$\eta_1$")
-#         ax_maxwellian.set_ylabel(r"$v_x$")
-#         ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
-#         fig.colorbar(pcm, ax = ax_maxwellian)
-        
-# plt.tight_layout()
-# plt.show()
