@@ -42,7 +42,7 @@ unit_t = model.units.t
 
 # get scalar data (post processing not needed for scalar data)
 if MPI.COMM_WORLD.Get_rank() == 0:
-    pa_data = os.path.join(env.path_out, "data")
+    pa_data = os.path.join(path, "data")
     with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
         time = f["time"]["value"][()]*unit_t
         E = f["scalar"]["en_E"][()]
@@ -58,7 +58,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     ax.set_xlabel("time [s]")
     ax.set_ylabel("energy [a.u.]")
 
-    ax.set_xlim(0,0.75 * 1e-5)
+    # ax.set_xlim(0,0.75 * 1e-5)
     ax.set_yscale("log")
 
     ax.legend()
@@ -66,10 +66,11 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.show()      
 
 ### Progression of energy in EM-field along different directions ###
-Nel = tuple(el - 1 for el in simdata.grids_phy[0].shape)
+phy_grid = simdata.grids_phy[0].shape
+print(phy_grid)
 
 Nt = simdata.t_grid
-unit_volume = 1 / xp.prod(Nel)
+unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
 
 def field_energy(field) -> float:
     """
@@ -78,7 +79,7 @@ def field_energy(field) -> float:
 
     energy_square = xp.sum(field ** 2)
 
-    return energy_square * 1 / 2
+    return energy_square * unit_volume / 2
 
 # function to extract field energy along each axis at all time
 extract_field_energy_axes = lambda field: [
@@ -142,5 +143,32 @@ ax[1].set_ylabel("magnetic energy $B^2/2$ [a.u.]")
 
 ax[1].set_xlim(0, 0.75 * 1e-5)
 ax[1].set_ylim(0,1e6)
+ax[1].grid()
 
+plt.show()
+
+### Binning distribution progression ###      
+e1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_e1"]
+v1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_v1"]  
+nrows = 3
+ncols = 4
+ntime = len(simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"]) 
+time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
+
+fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
+for i in range(nrows):
+    for j in range(ncols):
+        ax_maxwellian = axs[i][j]
+        time_idx = time_indices[j + i*ncols]
+
+        #maxwellian distribution plot
+        color_mapped = simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"][time_idx].T
+        pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
+
+        ax_maxwellian.set_xlabel(r"$\eta_1$")
+        ax_maxwellian.set_ylabel(r"$v_x$")
+        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
+        fig.colorbar(pcm, ax = ax_maxwellian)
+        
+plt.tight_layout()
 plt.show()

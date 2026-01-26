@@ -70,11 +70,11 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     plt.show()      
 
 ### Binning distribution progression ###      
-e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
-v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]  
+e1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_e1"]
+v1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_v1"]  
 nrows = 3
 ncols = 4
-ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
+ntime = len(simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"]) 
 time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
 fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
@@ -84,7 +84,7 @@ for i in range(nrows):
         time_idx = time_indices[j + i*ncols]
 
         #maxwellian distribution plot
-        color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_idx].T
+        color_mapped = simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"][time_idx].T
         pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")

@@ -75,11 +75,11 @@ main.pproc(path=path)
 simdata = main.load_data(path=path)
 
 # plot in e1-v1
-e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
-v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
+e1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_e1"]
+v1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_v1"]
 
 nrows = 4
-ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
+ntime = len(simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"]) 
 time_indices = [int( i/(nrows-1) * (ntime - 1) ) for i in range(nrows)]
 
 fig, axs = plt.subplots(nrows = nrows, ncols = 2, figsize = (14,10), sharex=True, sharey=True)
@@ -90,7 +90,7 @@ for index in range(nrows):
 
 
     #maxwellian distribution plot
-    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_index].T
+    color_mapped = simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"][time_index].T
     pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
 
     ax_maxwellian.set_xlabel(r"$\eta_1$")
@@ -99,7 +99,7 @@ for index in range(nrows):
     fig.colorbar(pcm, ax = ax_maxwellian)
 
     #perturbation plot
-    color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["delta_f_binned"][time_index].T
+    color_mapped = simdata.f["kinetic_ions"]["e1_v1_density"]["delta_f_binned"][time_index].T
     pcm = ax_perturbation.pcolor(e1_bins, v1_bins, color_mapped)
 
     ax_perturbation.set_xlabel(r"$\eta_1$")
