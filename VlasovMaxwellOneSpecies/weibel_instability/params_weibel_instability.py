@@ -32,7 +32,7 @@ dens_pert_amp = 1e-4
 
 vth1_background_val = 0.02/xp.sqrt(2)
 vth2_background_val = vth1_background_val * xp.sqrt(12)
-vth3_background_val = 1 #vth1_background_val * 1e-3
+vth3_background_val = vth1_background_val * 1e-3
 
 # environment options
 env = EnvironmentOptions(sim_folder="sim_data", save_step = 1)
@@ -41,7 +41,7 @@ env = EnvironmentOptions(sim_folder="sim_data", save_step = 1)
 base_units = BaseUnits()
 
 # time stepping
-time_opts = Time(dt = 0.05, Tend = 60, split_algo = "LieTrotter")
+time_opts = Time(dt = 0.05, Tend = 200, split_algo = "LieTrotter")
 
 # geometry
 domain = domains.Cuboid(r1 = 2*xp.pi/k)
@@ -60,7 +60,7 @@ model = VlasovMaxwellOneSpecies()
 # species parameters
 model.kinetic_ions.set_phys_params(alpha = 1, epsilon = 1)
 
-loading_params = LoadingParameters(ppc = 3400)
+loading_params = LoadingParameters(Np = 100000, moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,vth3_background_val))
 weights_params = WeightsParameters(control_variate = True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
