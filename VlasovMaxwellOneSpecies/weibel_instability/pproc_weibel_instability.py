@@ -4,7 +4,7 @@ import os
 import cunumpy as xp
 import h5py
 from feectools.ddm.mpi import mpi as MPI
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, gridspec
 from struphy import main
 from struphy.io.options import Units
 
@@ -38,36 +38,37 @@ model.units.derive_units(
 )
 unit_t = model.units.t
 
-### Progression of total Energy in EM field ###
+### Show initial EM-field ###
 
-# get scalar data (post processing not needed for scalar data)
-if MPI.COMM_WORLD.Get_rank() == 0:
-    pa_data = os.path.join(path, "data")
-    with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
-        time = f["time"]["value"][()]*unit_t
-        E = f["scalar"]["en_E"][()]
-        B = f["scalar"]["en_B"][()]
+def plot_EM_state(time_step: int, n_dim = 3):
+    eta1 = simdata.grids_log[0]
 
-    # plot
-    fig, ax = plt.subplots(1, figsize = (18,12))
+    electric_field = simdata.spline_values["em_fields"]["e_field_log"][time_step]
+    magnetic_field = simdata.spline_values["em_fields"]["b_field_log"][time_step]
+    
+    fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize = (8,6), sharex = True, sharey = True)
 
-    ax.plot(time, E, label=r"$E^2/2$")
-    ax.plot(time, B, label=r"$B^2/2$")
+    for i in range(n_dim):
+        axs[0,i].plot(eta1, electric_field[i][:,0,0])
+        axs[0,i].set_title(fr"$E_{i+1}$")
 
-    ax.set_title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
-    ax.set_xlabel("time [s]")
-    ax.set_ylabel("energy [a.u.]")
+        axs[1,i].plot(eta1, magnetic_field[i][:,0,0])
+        axs[1,i].set_title(fr"$B_{i+1}$")
+    
+    axs[0,0].set_ylabel(r"Electric field value")
+    axs[1,0].set_ylabel(r"Magnetic field value")
+    axs[1,0].set_xlabel(r"$\eta_1$")
+    axs[1,1].set_xlabel(r"$\eta_2$")
+    axs[1,2].set_xlabel(r"$\eta_3$")
 
-    # ax.set_xlim(0,0.75 * 1e-5)
-    ax.set_yscale("log")
+    fig.suptitle(f"EM-field at time step: {time_step}")
 
-    ax.legend()
+    plt.show()
 
-    plt.show()      
+plot_EM_state(0)
 
 ### Progression of energy in EM-field along different directions ###
 phy_grid = simdata.grids_phy[0].shape
-print(phy_grid)
 
 Nt = simdata.t_grid
 unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
@@ -93,57 +94,17 @@ E_energy = extract_field_energy_axes("e_field_log")
 B_energy = extract_field_energy_axes("b_field_log")
 
 # plotting
-fig, ax = plt.subplots(2, figsize = (18,12), sharex=True)
+fig, ax = plt.subplots(1, figsize = (18,12), sharex=True)
 
 # Electric field
-for i in range(3):
-    ax[0].plot(simdata.t_grid*unit_t, E_energy[i], label=fr"$\frac{{\|E_{{{i+1}}}\|^2}}{{2}}$")
+ax.plot(simdata.t_grid*unit_t, E_energy[0], label=fr"$\frac{{\|E_{{{1}}}\|^2}}{{2}}$")
+ax.plot(simdata.t_grid*unit_t, E_energy[1], label=fr"$\frac{{\|E_{{{2}}}\|^2}}{{2}}$")
+ax.plot(simdata.t_grid*unit_t, B_energy[2], label=fr"$\frac{{\|B_{{{3}}}\|^2}}{{2}}$")
 
-ax[0].set_ylabel("electric energy $E^2/2$ [a.u.]")
+ax.set_ylabel("Energy [a.u.]")
 
-ax[0].legend()
-ax[0].set_yscale("log")
-
-# Magnetic field
-for i in range(3):
-    ax[1].plot(simdata.t_grid*unit_t, B_energy[i], label=fr"$\frac{{\|B_{{{i+1}}}\|^2}}{{2}}$")
-
-ax[1].set_xlabel("time [s]")
-ax[1].set_ylabel("magnetic energy $B^2/2$ [a.u.]")
-
-ax[1].set_xlim(0, 0.75 * 1e-5)
-
-ax[1].legend()
-ax[1].set_yscale("log")
-
-plt.show()
-
-# Compare self-implemented energy along axis to API's result
-
-def total_field_energy(y1, y2, y3):
-    return y1 + y2 + y3
-
-def plt_comparison(x, y_API, y1, y2, y3, ax):
-    y_cal = total_field_energy(y1,y2,y3)
-
-    ax.plot(x, y_API, label = "API")
-    ax.plot(x, y_cal, label = "cal")
-    ax.set_yscale("log")
-    ax.legend()
-
-fig, ax = plt.subplots(2, figsize = (18,12), sharex = True)
-
-plt_comparison(time, E, *E_energy, ax = ax[0])
-ax[0].set_ylabel("electric energy $E^2/2$ [a.u.]")
-ax[0].set_ylim(0,1e6)
-
-plt_comparison(time, B, *B_energy, ax = ax[1])
-ax[1].set_xlabel("time [s]")
-ax[1].set_ylabel("magnetic energy $B^2/2$ [a.u.]")
-
-ax[1].set_xlim(0, 0.75 * 1e-5)
-ax[1].set_ylim(0,1e6)
-ax[1].grid()
+ax.legend()
+ax.set_yscale("log")
 
 plt.show()
 
