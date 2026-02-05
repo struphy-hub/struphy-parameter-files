@@ -6,7 +6,7 @@ import h5py
 from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
 from struphy import main
-from struphy.io.options import Units
+from struphy.physics.physics import Units
 
 # post process raw data
 path = os.path.join(os.getcwd(), "sim_data")

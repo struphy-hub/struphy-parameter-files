@@ -11,7 +11,7 @@ from struphy.io.options import DerhamOptions
 from struphy.io.options import FieldsBackground
 from struphy.initial import perturbations
 from struphy.kinetic_background import maxwellians
-from struphy.pic.utilities import (LoadingParameters,
+from struphy.particles.parameters import (LoadingParameters,
                                    WeightsParameters,
                                    BoundaryParameters,
                                    BinningPlot,
