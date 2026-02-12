@@ -3,15 +3,15 @@ Parameter file of bump on instability implemented using VlasovAmpereOneSpecies m
 (perturbation wave number "k" = 0.1, initial stream velocity v1 = 3, v2 = -4.5)
 """
 
-from struphy.io.options import EnvironmentOptions, BaseUnits, Time
-from struphy.geometry import domains
-from struphy.fields_background import equils
-from struphy.topology import grids
-from struphy.io.options import DerhamOptions
-from struphy.io.options import FieldsBackground
-from struphy.initial import perturbations
-from struphy.kinetic_background import maxwellians
-from struphy.pic.utilities import (LoadingParameters,
+from struphy import EnvironmentOptions, BaseUnits, Time
+from struphy import domains
+from struphy import equils
+from struphy import grids
+from struphy import DerhamOptions
+from struphy import FieldsBackground
+from struphy import perturbations
+from struphy import maxwellians
+from struphy import (LoadingParameters,
                                    WeightsParameters,
                                    BoundaryParameters,
                                    BinningPlot,
@@ -20,11 +20,11 @@ from struphy.pic.utilities import (LoadingParameters,
 from struphy import main
 
 # import model, set verbosity
-from struphy.models.kinetic import VlasovAmpereOneSpecies
+from struphy.models import VlasovAmpereOneSpecies
 
 # environment options
 env = EnvironmentOptions(sim_folder="sim_data")
-# 
+
 # units
 base_units = BaseUnits()
 
@@ -48,7 +48,7 @@ model = VlasovAmpereOneSpecies(with_B0 = False)
 # species parameters
 model.kinetic_ions.set_phys_params(alpha=1.0, epsilon=-1.0)
 
-loading_params = LoadingParameters(ppc = 1000,moments=(0.0,0.0,0.0,3.0,1.0,1.0))
+loading_params = LoadingParameters(ppc = 3200, moments=(0.0,0.0,0.0,3.0,1.0,1.0))
 weights_params = WeightsParameters(control_variate= True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,

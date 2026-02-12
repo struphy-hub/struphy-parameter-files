@@ -3,15 +3,15 @@ Parameter file of weak Landau damping implemented using VlasovAmpereOneSpecies m
 (ModeCos perturbation amplitude = 0.001, k = 0.5)
 """
 
-from struphy.io.options import EnvironmentOptions, BaseUnits, Time
-from struphy.geometry import domains
-from struphy.fields_background import equils
-from struphy.topology import grids
-from struphy.io.options import DerhamOptions
-from struphy.io.options import FieldsBackground
-from struphy.initial import perturbations
-from struphy.kinetic_background import maxwellians
-from struphy.pic.utilities import (LoadingParameters,
+from struphy import EnvironmentOptions, BaseUnits, Time
+from struphy import domains
+from struphy import equils
+from struphy import grids
+from struphy import DerhamOptions
+from struphy import FieldsBackground
+from struphy import perturbations
+from struphy import maxwellians
+from struphy import (LoadingParameters,
                                    WeightsParameters,
                                    BoundaryParameters,
                                    BinningPlot,
@@ -20,7 +20,7 @@ from struphy.pic.utilities import (LoadingParameters,
 from struphy import main
 
 # import model, set verbosity
-from struphy.models.kinetic import VlasovAmpereOneSpecies
+from struphy.models import VlasovAmpereOneSpecies
 
 # environment options
 env = EnvironmentOptions(sim_folder="sim_data")

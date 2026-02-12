@@ -6,7 +6,7 @@ import h5py
 from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
 from struphy import main
-from struphy.io.options import Units
+from struphy.physics.physics import Units
 
 # post process raw data
 path = os.path.join(os.getcwd(), "sim_data")
@@ -16,8 +16,8 @@ main.pproc(path=path)
 simdata = main.load_data(path=path)
 
 ### Initial velocity distribution ###
-v1_bins = simdata.f["kinetic_ions"]["v1"]["grid_v1"]
-f_v1 = simdata.f["kinetic_ions"]["v1"]["f_binned"]
+v1_bins = simdata.f["kinetic_ions"]["v1_density"]["grid_v1"]
+f_v1 = simdata.f["kinetic_ions"]["v1_density"]["f_binned"]
 
 fig, ax = plt.subplots(1 ,figsize = (14,10))
 
