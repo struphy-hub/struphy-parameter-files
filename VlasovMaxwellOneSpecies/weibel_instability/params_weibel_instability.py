@@ -5,15 +5,15 @@ Parameter file of Weibel instability implemented using VlasovMaxwellOnespecies m
 Magnetic field along "z"
 Electric field along "x-y"
 """
-from struphy.io.options import EnvironmentOptions, BaseUnits, Time
-from struphy.geometry import domains
-from struphy.fields_background import equils, generic
-from struphy.topology import grids
-from struphy.io.options import DerhamOptions
-from struphy.io.options import FieldsBackground
-from struphy.initial import perturbations
-from struphy.kinetic_background import maxwellians
-from struphy.pic.utilities import (LoadingParameters,
+from struphy import EnvironmentOptions, BaseUnits, Time
+from struphy import domains
+from struphy import equils
+from struphy import grids
+from struphy import DerhamOptions
+from struphy import FieldsBackground
+from struphy import perturbations
+from struphy import maxwellians
+from struphy import (LoadingParameters,
                                    WeightsParameters,
                                    BoundaryParameters,
                                    BinningPlot,
@@ -21,8 +21,9 @@ from struphy.pic.utilities import (LoadingParameters,
                                    )
 from struphy import main
 
+
 # import model, set verbosity
-from struphy.models.kinetic import VlasovMaxwellOneSpecies
+from struphy.models import VlasovMaxwellOneSpecies
 import cunumpy as xp
 
 # setup parameters
@@ -41,7 +42,7 @@ env = EnvironmentOptions(sim_folder="sim_data", save_step = 1)
 base_units = BaseUnits()
 
 # time stepping
-time_opts = Time(dt = 0.05, Tend = 200, split_algo = "LieTrotter")
+time_opts = Time(dt = 0.05, Tend = 500, split_algo = "LieTrotter")
 
 # geometry
 domain = domains.Cuboid(r1 = 2*xp.pi/k)
