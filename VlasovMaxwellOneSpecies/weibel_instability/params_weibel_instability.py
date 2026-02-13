@@ -33,7 +33,6 @@ dens_pert_amp = 1e-4
 
 vth1_background_val = 0.02/xp.sqrt(2)
 vth2_background_val = vth1_background_val * xp.sqrt(12)
-vth3_background_val = vth1_background_val * 1e-3
 
 # environment options
 env = EnvironmentOptions(sim_folder="sim_data", save_step = 1)
@@ -61,7 +60,7 @@ model = VlasovMaxwellOneSpecies()
 # species parameters
 model.kinetic_ions.set_phys_params(alpha = 1, epsilon = 1)
 
-loading_params = LoadingParameters(Np = 100000, moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,vth3_background_val))
+loading_params = LoadingParameters(ppc = 1000, set_zero_velocity = (False, False, True), moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,1.0))
 weights_params = WeightsParameters(control_variate = True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -88,14 +87,14 @@ model.initial_poisson.options = model.initial_poisson.Options(stab_mat="M0")
 model.em_fields.b_field.add_perturbation(perturbation = perturbations.ModesCos(amps=(B_pert_amp,), ls = (1,), comp = 2)) # Initial Bz depending on x-axis
 
 maxwellian = maxwellians.Maxwellian3D(
-                    vth1=(vth1_background_val, None) , vth2=(vth2_background_val, None), vth3=(vth3_background_val, None)
+                    vth1=(vth1_background_val, None) , vth2=(vth2_background_val, None)
                 )
 model.kinetic_ions.var.add_background(maxwellian)
 
 # if .add_initial_condition is not called, the background is the kinetic initial condition
 perturbation = perturbations.ModesCos(amps = (dens_pert_amp,), ls = (1,))
 maxwellian_pt = maxwellians.Maxwellian3D(n=(1.0, perturbation), 
-                vth1= (vth1_background_val, None), vth2= (vth2_background_val, None), vth3=(vth3_background_val, None)
+                vth1= (vth1_background_val, None), vth2= (vth2_background_val, None)
                 )
 model.kinetic_ions.var.add_initial_condition(maxwellian_pt)
 

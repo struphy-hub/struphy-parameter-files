@@ -97,9 +97,9 @@ B_energy = extract_field_energy_axes("b_field_log")
 fig, ax = plt.subplots(1, figsize = (18,12), sharex=True)
 
 # Electric field
-ax.plot(simdata.t_grid*unit_t, E_energy[0], label=fr"$\frac{{\|E_{{{1}}}\|^2}}{{2}}$")
-ax.plot(simdata.t_grid*unit_t, E_energy[1], label=fr"$\frac{{\|E_{{{2}}}\|^2}}{{2}}$")
-ax.plot(simdata.t_grid*unit_t, B_energy[2], label=fr"$\frac{{\|B_{{{3}}}\|^2}}{{2}}$")
+ax.plot(simdata.t_grid, E_energy[0], label=fr"$\frac{{\|E_{{{1}}}\|^2}}{{2}}$")
+ax.plot(simdata.t_grid, E_energy[1], label=fr"$\frac{{\|E_{{{2}}}\|^2}}{{2}}$")
+ax.plot(simdata.t_grid, B_energy[2], label=fr"$\frac{{\|B_{{{3}}}\|^2}}{{2}}$")
 
 ax.set_ylabel("Energy [a.u.]")
 
@@ -128,7 +128,7 @@ for i in range(nrows):
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")
         ax_maxwellian.set_ylabel(r"$v_x$")
-        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
+        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]:4.2e} s")
         fig.colorbar(pcm, ax = ax_maxwellian)
         
 plt.tight_layout()
