@@ -35,7 +35,7 @@ vth1_background_val = 0.02/xp.sqrt(2)
 vth2_background_val = vth1_background_val * xp.sqrt(12)
 
 # environment options
-env = EnvironmentOptions(sim_folder="sim_data", save_step = 1)
+env = EnvironmentOptions(sim_folder="sim_data", save_step = 5)
 
 # units
 base_units = BaseUnits()
@@ -60,7 +60,7 @@ model = VlasovMaxwellOneSpecies()
 # species parameters
 model.kinetic_ions.set_phys_params(alpha = 1, epsilon = 1)
 
-loading_params = LoadingParameters(ppc = 100_000, set_zero_velocity = (False, False, True), moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,1.0))
+loading_params = LoadingParameters(ppc = 500, set_zero_velocity = (False, False, True), moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,1.0))
 weights_params = WeightsParameters(control_variate = True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
