@@ -35,7 +35,7 @@ vth1_background_val = 0.02/xp.sqrt(2)
 vth2_background_val = vth1_background_val * xp.sqrt(12)
 
 # environment options
-env = EnvironmentOptions(sim_folder="sim_data", save_step = 5)
+env = EnvironmentOptions(sim_folder="sim_data", save_step = 5, max_runtime=xp.inf)
 
 # units
 base_units = BaseUnits()
@@ -90,13 +90,6 @@ maxwellian = maxwellians.Maxwellian3D(
                     vth1=(vth1_background_val, None) , vth2=(vth2_background_val, None)
                 )
 model.kinetic_ions.var.add_background(maxwellian)
-
-# if .add_initial_condition is not called, the background is the kinetic initial condition
-perturbation = perturbations.ModesCos(amps = (dens_pert_amp,), ls = (1,))
-maxwellian_pt = maxwellians.Maxwellian3D(n=(1.0, perturbation), 
-                vth1= (vth1_background_val, None), vth2= (vth2_background_val, None)
-                )
-model.kinetic_ions.var.add_initial_condition(maxwellian_pt)
 
 # optional: exclude variables from saving
 # model.kinetic_ions.var.save_data = False
