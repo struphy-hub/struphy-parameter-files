@@ -92,7 +92,6 @@ sim = Simulation(
     equil=equil,
     grid=grid,
     derham_opts=derham_opts,
-    verbose=True,
 )
 
 # -------------------
@@ -146,4 +145,4 @@ init = init1 + init2
 model.kinetic_ions.var.add_initial_condition(init)
 
 if __name__ == "__main__":
-    sim.run(verbose=True)
+    sim.run(verbose=False)

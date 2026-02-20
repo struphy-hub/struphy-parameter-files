@@ -92,7 +92,6 @@ sim = Simulation(
     equil=equil,
     grid=grid,
     derham_opts=derham_opts,
-    verbose=True,
 )
 
 # -------------------
@@ -141,4 +140,4 @@ init = maxwellians.Maxwellian3D(n = (1.0, perturbation))
 model.kinetic_ions.var.add_initial_condition(init)
 
 if __name__ == "__main__":
-    sim.run(verbose=True)
+    sim.run(verbose=False)
