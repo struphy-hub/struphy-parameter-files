@@ -1,12 +1,11 @@
 import params_two_stream as damping_params
 
 import os
-import cunumpy as xp
 import h5py
 from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
-from struphy import main
-from struphy.io.options import Units
+from struphy.physics.physics import Units
+from struphy import PostProcessor, PlottingData
 
 ### Electric field progression ###
 # get parameters
@@ -57,18 +56,20 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 ### Binning distribution progression ###        
 # post process raw data
 path = os.path.join(os.getcwd(), "sim_data")
-main.pproc(path=path)
+pp = PostProcessor(path_out=path)
+pp.process()
 
 # get sim data
-simdata = main.load_data(path=path)
+pdata = PlottingData(path_out=path)
+pdata.load()
 
 # plot in e1-v1
-e1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_e1"]
-v1_bins = simdata.f["kinetic_ions"]["e1_v1"]["grid_v1"]
+e1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_e1
+v1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_v1
 
 nrows = 3
 ncols = 4
-ntime = len(simdata.f["kinetic_ions"]["e1_v1"]["f_binned"]) 
+ntime = len(pdata.f.kinetic_ions.e1_v1_density.f_binned) 
 time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
 fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
@@ -78,12 +79,12 @@ for i in range(nrows):
         time_idx = time_indices[j + i*ncols]
 
         #maxwellian distribution plot
-        color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][time_idx].T
+        color_mapped = pdata.f.kinetic_ions.e1_v1_density.f_binned[time_idx].T
         pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
 
         ax_maxwellian.set_xlabel(r"$\eta_1$")
         ax_maxwellian.set_ylabel(r"$v_x$")
-        ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_idx]*unit_t:4.2e} s")
+        ax_maxwellian.set_title(fr"full-$f$ at t = {pdata.t_grid[time_idx]*unit_t:4.2e} s")
         fig.colorbar(pcm, ax = ax_maxwellian)
         
 plt.tight_layout()
@@ -96,10 +97,10 @@ if save_video_pngs:
     fig = plt.figure(figsize=(8, 8))
     for n in range(ntime):
         if n % jump == 0:
-            color_mapped = simdata.f["kinetic_ions"]["e1_v1"]["f_binned"][n].T
+            color_mapped = pdata.f.kinetic_ions.e1_v1_density.f_binned[n].T
             plt.pcolor(e1_bins, v1_bins, color_mapped)
             
             plt.xlabel("position [a.u.]")
             plt.ylabel("velocity [a.u.]")
-            plt.title(fr"full-$f$ at t = {simdata.t_grid[n]*unit_t:4.2e} s")
+            plt.title(fr"full-$f$ at t = {pdata.t_grid[n]*unit_t:4.2e} s")
             plt.savefig(f"video/fig_{n:04.0f}.png", transparent=False, bbox_inches='tight', pad_inches=0)
