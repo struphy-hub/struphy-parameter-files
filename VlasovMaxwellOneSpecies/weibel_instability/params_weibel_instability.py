@@ -77,13 +77,13 @@ model.kinetic_ions.var.save_data = True
 # --------------------------
 
 # Environment options
-env = EnvironmentOptions(sim_folder="simData_500ppc_perbF_controlVariateF", save_step = 1, max_runtime=xp.inf)
+env = EnvironmentOptions(sim_folder="simData_500ppc_perbF_controlVariateF", save_step = 5, max_runtime=xp.inf)
 
 # Units
 base_units = BaseUnits()
 
 # Time stepping
-time_opts = Time(dt = 0.05, Tend = 0.1, split_algo = "LieTrotter")
+time_opts = Time(dt = 0.05, Tend = 500, split_algo = "LieTrotter")
 
 # Geometry
 domain = domains.Cuboid(r1 = 2*xp.pi/k)
