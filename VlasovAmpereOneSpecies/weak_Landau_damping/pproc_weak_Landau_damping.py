@@ -5,8 +5,8 @@ import cunumpy as xp
 import h5py
 from feectools.ddm.mpi import mpi as MPI
 from matplotlib import pyplot as plt
-from struphy import main
 from struphy.physics.physics import Units
+from struphy import PostProcessor, PlottingData
 
 ### Electric field progression ###
 # get parameters
@@ -32,7 +32,7 @@ model.units.derive_units(
 unit_t = model.units.t
 
 def E_exact(t):
-    eps = damping_params.perturbation._amps[0]
+    eps = damping_params.perturbation.amps[0]
     r = 0.3677
     omega_r = 1.4156
     omega_i = -0.1533
@@ -69,42 +69,44 @@ if MPI.COMM_WORLD.Get_rank() == 0:
 ### Binning distribution progression ###        
 # post process raw data
 path = os.path.join(os.getcwd(), "sim_data")
-main.pproc(path=path)
+pp = PostProcessor(path_out=path)
+pp.process()
 
 # get sim data
-simdata = main.load_data(path=path)
+pdata = PlottingData(path_out=path)
+pdata.load()
 
 # plot in e1-v1
-e1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_e1"]
-v1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_v1"]
+e1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_e1
+v1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_v1
 
 nrows = 4
-ntime = len(simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"]) 
+ntime = len(pdata.f.kinetic_ions.e1_v1_density.f_binned) 
 time_indices = [int( i/(nrows-1) * (ntime - 1) ) for i in range(nrows)]
 
 fig, axs = plt.subplots(nrows = nrows, ncols = 2, figsize = (14,10), sharex=True, sharey=True)
 for index in range(nrows):
     ax_maxwellian, ax_perturbation = axs[index][0], axs[index][1]
     time_index = time_indices[index]
-    ax_title = f"t = {simdata.t_grid[time_index]} ms"
+    ax_title = f"t = {pdata.t_grid[time_index]} ms"
 
 
     #maxwellian distribution plot
-    color_mapped = simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"][time_index].T
+    color_mapped = pdata.f.kinetic_ions.e1_v1_density.f_binned[time_index].T
     pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
 
     ax_maxwellian.set_xlabel(r"$\eta_1$")
     ax_maxwellian.set_ylabel(r"$v_x$")
-    ax_maxwellian.set_title(fr"full-$f$ at t = {simdata.t_grid[time_index]*unit_t:4.2e} s")
+    ax_maxwellian.set_title(fr"full-$f$ at t = {pdata.t_grid[time_index]*unit_t:4.2e} s")
     fig.colorbar(pcm, ax = ax_maxwellian)
 
     #perturbation plot
-    color_mapped = simdata.f["kinetic_ions"]["e1_v1_density"]["delta_f_binned"][time_index].T
+    color_mapped = pdata.f.kinetic_ions.e1_v1_density.delta_f_binned[time_index].T
     pcm = ax_perturbation.pcolor(e1_bins, v1_bins, color_mapped)
 
     ax_perturbation.set_xlabel(r"$\eta_1$")
     ax_perturbation.set_ylabel(r"$v_x$")
-    ax_perturbation.set_title(fr"$\delta f$ at t = {simdata.t_grid[time_index]*unit_t:4.2e} s")
+    ax_perturbation.set_title(fr"$\delta f$ at t = {pdata.t_grid[time_index]*unit_t:4.2e} s")
     fig.colorbar(pcm, ax = ax_perturbation)
 
 plt.tight_layout()
