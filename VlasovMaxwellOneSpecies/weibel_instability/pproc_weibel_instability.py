@@ -42,106 +42,106 @@ model.units.derive_units(
 )
 unit_t = model.units.t
 
-# ### Plot EM-field of each time step ###
-# def plot_EM_state(time_step: int, n_dim = 3):
-#     eta1 = pdata.grids_log[0]
+### Plot EM-field of each time step ###
+def plot_EM_state(time_step: int, n_dim = 3):
+    eta1 = pdata.grids_log[0]
 
-#     electric_field = pdata.spline_values.em_fields.e_field_log.data[time_step]
-#     magnetic_field = pdata.spline_values.em_fields.b_field_log.data[time_step]
+    electric_field = pdata.spline_values.em_fields.e_field_log.data[time_step]
+    magnetic_field = pdata.spline_values.em_fields.b_field_log.data[time_step]
     
-#     fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize = (8,6), sharex = True, sharey = True)
+    fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize = (8,6), sharex = True, sharey = True)
 
-#     for i in range(n_dim):
-#         axs[0,i].plot(eta1, electric_field[i][:,0,0])
-#         axs[0,i].set_title(fr"$E_{i+1}$")
+    for i in range(n_dim):
+        axs[0,i].plot(eta1, electric_field[i][:,0,0])
+        axs[0,i].set_title(fr"$E_{i+1}$")
 
-#         axs[1,i].plot(eta1, magnetic_field[i][:,0,0])
-#         axs[1,i].set_title(fr"$B_{i+1}$")
+        axs[1,i].plot(eta1, magnetic_field[i][:,0,0])
+        axs[1,i].set_title(fr"$B_{i+1}$")
     
-#     axs[0,0].set_ylabel(r"Electric field value")
-#     axs[1,0].set_ylabel(r"Magnetic field value")
-#     axs[1,0].set_xlabel(r"$\eta_1$")
-#     axs[1,1].set_xlabel(r"$\eta_2$")
-#     axs[1,2].set_xlabel(r"$\eta_3$")
+    axs[0,0].set_ylabel(r"Electric field value")
+    axs[1,0].set_ylabel(r"Magnetic field value")
+    axs[1,0].set_xlabel(r"$\eta_1$")
+    axs[1,1].set_xlabel(r"$\eta_2$")
+    axs[1,2].set_xlabel(r"$\eta_3$")
 
-#     axs[0,0].set_ylim(-5e-3, 5e-3)
-#     axs[1,0].set_ylim(-5e-3, 5e-3)
+    axs[0,0].set_ylim(-5e-3, 5e-3)
+    axs[1,0].set_ylim(-5e-3, 5e-3)
 
-#     fig.suptitle(f"EM-field at time step: {time_step}")
+    fig.suptitle(f"EM-field at time step: {time_step}")
 
-# os.makedirs(os.path.dirname(save_path), exist_ok=True)
-# for i in xp.arange(0, Tend, dt):
-#     plot_EM_state(i)
-#     plt.savefig(os.path.join(save_path, "EM_state", f"{i:.2f}".replace(".", "_") + ".png"))
-#     plt.close()
+os.makedirs(os.path.dirname(save_path), exist_ok=True)
+for i in xp.arange(0, Tend, dt):
+    plot_EM_state(i)
+    plt.savefig(os.path.join(save_path, "EM_state", f"{i:.2f}".replace(".", "_") + ".png"))
+    plt.close()
 
-# ### Progression of energy in EM-field along different directions ###
-# phy_grid = pdata.grids_phy[0].shape
+### Progression of energy in EM-field along different directions ###
+phy_grid = pdata.grids_phy[0].shape
 
-# Nt = pdata.t_grid
-# unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
+Nt = pdata.t_grid
+unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
 
-# def field_energy(field) -> float:
-#     """
-#     Calculate totoal energy of field in space
-#     """
+def field_energy(field) -> float:
+    """
+    Calculate totoal energy of field in space
+    """
 
-#     energy_square = xp.sum(field ** 2)
+    energy_square = xp.sum(field ** 2)
 
-#     return energy_square * unit_volume / 2
+    return energy_square * unit_volume / 2
 
-# extract_field_energy_axes = lambda field: [
-#     xp.array([
-#         field_energy(getattr(pdata.spline_values.em_fields, field).data[t][i]) for t in Nt
-#     ]) for i in range(3)
-# ]
+extract_field_energy_axes = lambda field: [
+    xp.array([
+        field_energy(getattr(pdata.spline_values.em_fields, field).data[t][i]) for t in Nt
+    ]) for i in range(3)
+]
 
-# electric_energy = extract_field_energy_axes("e_field_log")
-# magnetic_energy = extract_field_energy_axes("b_field_log")
+electric_energy = extract_field_energy_axes("e_field_log")
+magnetic_energy = extract_field_energy_axes("b_field_log")
 
-# fig, ax = plt.subplots(1, figsize = (14,8))
+fig, ax = plt.subplots(1, figsize = (14,8))
 
-# ax.plot(pdata.t_grid, electric_energy[0], label = r"$E_1^2$/2", color = "blue")
-# ax.plot(pdata.t_grid, electric_energy[1], label = r"$E_2^2$/2", color = "green")
-# ax.plot(pdata.t_grid, magnetic_energy[2], label = r"$B_3^2$/2", color = "red")
+ax.plot(pdata.t_grid, electric_energy[0], label = r"$E_1^2$/2", color = "blue")
+ax.plot(pdata.t_grid, electric_energy[1], label = r"$E_2^2$/2", color = "green")
+ax.plot(pdata.t_grid, magnetic_energy[2], label = r"$B_3^2$/2", color = "red")
 
-# ax.set_xlabel("time [a.u]")
-# ax.set_ylabel("Energy [a.u.]")
-# ax.set_title(fr"{ppc=}, maxwellian_perturbation($\alpha$)={1e-4 if 'perbT' in save_path else '0.0'}")
+ax.set_xlabel("time [a.u]")
+ax.set_ylabel("Energy [a.u.]")
+ax.set_title(fr"{ppc=}, maxwellian_perturbation($\alpha$)={1e-4 if 'perbT' in save_path else '0.0'}")
 
-# ax.set_ylim(1e-14,1e0)
-# ax.set_xlim(0,500)
+ax.set_ylim(1e-14,1e0)
+ax.set_xlim(0,500)
 
-# ax.grid()
-# ax.minorticks_on()
+ax.grid()
+ax.minorticks_on()
 
-# # growth rate
-# exp_func = lambda x, m, b: 10**(m*x + b)
+# growth rate
+exp_func = lambda x, m, b: 10**(m*x + b)
 
-# xf = xp.abs(pdata.t_grid - 200).argmin()  + 1 # index of time 200 [a.u.] (observed end of growth rate)
+xf = xp.abs(pdata.t_grid - 200).argmin()  + 1 # index of time 200 [a.u.] (observed end of growth rate)
 
-# params = xp.polyfit(pdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
-# ax.plot(
-#     pdata.t_grid,
-#     exp_func(pdata.t_grid, *params),
-#     label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
-#     color="cyan"
-# )
+params = xp.polyfit(pdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
+ax.plot(
+    pdata.t_grid,
+    exp_func(pdata.t_grid, *params),
+    label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
+    color="cyan"
+)
 
-# ax.plot(
-#     pdata.t_grid,
-#     exp_func(pdata.t_grid, 0.02784, params[1]),
-#     label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
-#     color="cyan",
-#     ls="--",
-#     alpha=0.5
-# )
+ax.plot(
+    pdata.t_grid,
+    exp_func(pdata.t_grid, 0.02784, params[1]),
+    label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
+    color="cyan",
+    ls="--",
+    alpha=0.5
+)
 
-# ax.legend(ncol = 2)
-# ax.set_yscale("log")
-# plt.tight_layout()
+ax.legend(ncol = 2)
+ax.set_yscale("log")
+plt.tight_layout()
 
-# plt.savefig(os.path.join(save_path,"E"))
+plt.savefig(os.path.join(save_path,"E"))
 
 ### Binning distribution evolution ###      
 e1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_e1
@@ -173,32 +173,33 @@ def plot_phaseSpace(bin):
 plot_phaseSpace("f_binned")
 plot_phaseSpace("delta_f_binned")
 
-# ### Current density evolution ###
-# current_density_path = os.path.join(save_path, "current_density")
-# os.makedirs(current_density_path,exist_ok=True)
+### Current density evolution ###
+current_density_path = os.path.join(save_path, "current_density")
+os.makedirs(current_density_path,exist_ok=True)
 
-# def current_1D(time_step:int):
-#     fig, ax = plt.subplots(nrows = 3, ncols = 3, figsize = (9,9),sharey = True, sharex = True)
+def current_1D(time:int):
+    time_step = abs(pdata.t_grid - time).argmin()
+    fig, ax = plt.subplots(nrows = 3, ncols = 3, figsize = (9,9),sharey = True, sharex = True)
 
-#     for i in range(3):
-#         for j in range(3):
+    for i in range(3):
+        for j in range(3):
 
-#             e_bins = pdata.f["PlottingDataetic_ions"][f"e{i+1sim_path_current_{j+1}"]["f_binned"][time_step]
-#             es = xp.linspace(0,1,e_bins.shape[0])
+            e_bins = getattr(pdata.f.kinetic_ions, f"e{i+1}_current_{j+1}").f_binned[time_step]
+            es = xp.linspace(0,1,e_bins.shape[0])
 
-#             ax[i,j].axhline(color = "red", alpha = 0.5)
-#             ax[i,j].plot(es, e_bins)
+            ax[i,j].axhline(color = "red", alpha = 0.5)
+            ax[i,j].plot(es, e_bins)
 
-#         ax[i,0].set_ylim(-0.01,0.01)
+        ax[i,0].set_ylim(-0.01,0.01)
 
-#     for i in range(3): ax[i,0].set_ylabel(fr"$j_{i+1}$")
-#     for j in range(3): ax[2,j].set_xlabel(fr"$\eta_{ {j+1} }$")
+    for i in range(3): ax[i,0].set_ylabel(fr"$j_{i+1}$")
+    for j in range(3): ax[2,j].set_xlabel(fr"$\eta_{ {j+1} }$")
 
-#     fig.suptitle(f"Current density at time {time_step}")
+    fig.suptitle(f"Current density at time {time}")
 
-#     plt.tight_layout()
-#     plt.savefig(os.path.join(current_density_path, str(time_step)))
-#     plt.clf()
+    plt.tight_layout()
+    plt.savefig(os.path.join(current_density_path, str(time).replace(".","_")))
+    plt.clf()
 
-# for i in range(0,Tend,20):
-#     current_1D(i)
+for t in xp.arange(0, Tend, dt):
+    current_1D(t)
