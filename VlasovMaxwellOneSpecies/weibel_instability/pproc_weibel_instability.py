@@ -9,14 +9,17 @@ from struphy import main
 from struphy.physics.physics import Units
 
 # post process raw data
-path = os.path.join(os.getcwd(), "sim_data")
+path = os.path.join(os.getcwd(), "simData_500ppc_perbT_controlVariateF")
 main.pproc(path=path)
 
+#save_path = os.path.join(os.getcwd(), "result", "perb" if "perbT" in path else "noPerb")
+save_path = os.path.join(os.getcwd(), "result", "noPerb", "controlVariateF")
 # get sim data
 simdata = main.load_data(path=path)
 
 # get parameters
 dt = damping_params.time_opts.dt
+Tend = damping_params.time_opts.Tend
 algo = damping_params.time_opts.split_algo
 Nel = damping_params.grid.Nel
 p = damping_params.derham_opts.p
@@ -38,8 +41,7 @@ model.units.derive_units(
 )
 unit_t = model.units.t
 
-### Show initial EM-field ###
-
+### Plot EM-field of each time step ###
 def plot_EM_state(time_step: int, n_dim = 3):
     eta1 = simdata.grids_log[0]
 
@@ -61,11 +63,16 @@ def plot_EM_state(time_step: int, n_dim = 3):
     axs[1,1].set_xlabel(r"$\eta_2$")
     axs[1,2].set_xlabel(r"$\eta_3$")
 
+    axs[0,0].set_ylim(-5e-3, 5e-3)
+    axs[1,0].set_ylim(-5e-3, 5e-3)
+
     fig.suptitle(f"EM-field at time step: {time_step}")
 
-    plt.show()
-
-plot_EM_state(0)
+os.makedirs(os.path.dirname(save_path), exist_ok=True)
+for i in xp.arange(0, Tend, 20):
+    plot_EM_state(i)
+    plt.savefig(os.path.join(save_path, "EM_state", str(i)))
+    plt.close()
 
 ### Progression of energy in EM-field along different directions ###
 phy_grid = simdata.grids_phy[0].shape
@@ -82,36 +89,62 @@ def field_energy(field) -> float:
 
     return energy_square * unit_volume / 2
 
-# function to extract field energy along each axis at all time
 extract_field_energy_axes = lambda field: [
-    xp.array([
-        field_energy(simdata.spline_values["em_fields"][field][t][i]) for t in Nt
-        ])
-    for i in range(3)
+xp.array([
+    field_energy(simdata.spline_values["em_fields"][field][t][i]) for t in Nt
+    ]) for i in range(3)
 ]
 
-E_energy = extract_field_energy_axes("e_field_log")
-B_energy = extract_field_energy_axes("b_field_log")
+electric_energy = extract_field_energy_axes("e_field_log")
+magnetic_energy = extract_field_energy_axes("b_field_log")
 
-# plotting
-fig, ax = plt.subplots(1, figsize = (18,12), sharex=True)
+fig, ax = plt.subplots(1, figsize = (14,8))
 
-# Electric field
-ax.plot(simdata.t_grid, E_energy[0], label=fr"$\frac{{\|E_{{{1}}}\|^2}}{{2}}$")
-ax.plot(simdata.t_grid, E_energy[1], label=fr"$\frac{{\|E_{{{2}}}\|^2}}{{2}}$")
-ax.plot(simdata.t_grid, B_energy[2], label=fr"$\frac{{\|B_{{{3}}}\|^2}}{{2}}$")
+ax.plot(simdata.t_grid, electric_energy[0], label = r"$E_1^2$/2", color = "blue")
+ax.plot(simdata.t_grid, electric_energy[1], label = r"$E_2^2$/2", color = "green")
+ax.plot(simdata.t_grid, magnetic_energy[2], label = r"$B_3^2$/2", color = "red")
 
+ax.set_xlabel("time [a.u]")
 ax.set_ylabel("Energy [a.u.]")
+ax.set_title(fr"{ppc=}, maxwellian_perturbation($\alpha$)={1e-4 if 'perbT' in save_path else '0.0'}")
 
-ax.legend()
+ax.set_ylim(1e-14,1e0)
+ax.set_xlim(0,500)
+
+ax.grid()
+ax.minorticks_on()
+
+# growth rate
+exp_func = lambda x, m, b: 10**(m*x + b)
+
+xf = 800
+params = xp.polyfit(simdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
+ax.plot(
+    simdata.t_grid,
+    exp_func(simdata.t_grid, *params),
+    label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
+    color="cyan"
+)
+
+ax.plot(
+    simdata.t_grid,
+    exp_func(simdata.t_grid, 0.02784, params[1]),
+    label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
+    color="cyan",
+    ls="--",
+    alpha=0.5
+)
+
+ax.legend(ncol = 2)
 ax.set_yscale("log")
+plt.tight_layout()
 
-plt.show()
+plt.savefig(os.path.join(save_path,"E"))
 
 ### Binning distribution progression ###      
 e1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_e1"]
 v1_bins = simdata.f["kinetic_ions"]["e1_v1_density"]["grid_v1"]  
-nrows = 3
+nrows = 5
 ncols = 4
 ntime = len(simdata.f["kinetic_ions"]["e1_v1_density"]["f_binned"]) 
 time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
@@ -132,4 +165,34 @@ for i in range(nrows):
         fig.colorbar(pcm, ax = ax_maxwellian)
         
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join(save_path, "dfPhaseSpace"))
+
+### Current density evolution ###
+current_density_path = os.path.join(save_path, "current_density")
+os.makedirs(current_density_path,exist_ok=True)
+
+def current_1D(time_step:int):
+    fig, ax = plt.subplots(nrows = 3, ncols = 3, figsize = (9,9),sharey = True, sharex = True)
+
+    for i in range(3):
+        for j in range(3):
+
+            e_bins = simdata.f["kinetic_ions"][f"e{i+1}_current_{j+1}"]["f_binned"][time_step]
+            es = xp.linspace(0,1,e_bins.shape[0])
+
+            ax[i,j].axhline(color = "red", alpha = 0.5)
+            ax[i,j].plot(es, e_bins)
+
+        ax[i,0].set_ylim(-0.01,0.01)
+
+    for i in range(3): ax[i,0].set_ylabel(fr"$j_{i+1}$")
+    for j in range(3): ax[2,j].set_xlabel(fr"$\eta_{ {j+1} }$")
+
+    fig.suptitle(f"Current density at time {time_step}")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(current_density_path, str(time_step)))
+    plt.clf()
+
+for i in range(0,Tend,20):
+    current_1D(i)
