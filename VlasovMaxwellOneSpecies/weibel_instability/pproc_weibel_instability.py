@@ -75,99 +75,103 @@ unit_t = model.units.t
 #     plt.savefig(os.path.join(save_path, "EM_state", f"{i:.2f}".replace(".", "_") + ".png"))
 #     plt.close()
 
-### Progression of energy in EM-field along different directions ###
-phy_grid = pdata.grids_phy[0].shape
+# ### Progression of energy in EM-field along different directions ###
+# phy_grid = pdata.grids_phy[0].shape
 
-Nt = pdata.t_grid
-unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
+# Nt = pdata.t_grid
+# unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
 
-def field_energy(field) -> float:
-    """
-    Calculate totoal energy of field in space
-    """
+# def field_energy(field) -> float:
+#     """
+#     Calculate totoal energy of field in space
+#     """
 
-    energy_square = xp.sum(field ** 2)
+#     energy_square = xp.sum(field ** 2)
 
-    return energy_square * unit_volume / 2
+#     return energy_square * unit_volume / 2
 
-extract_field_energy_axes = lambda field: [
-    xp.array([
-        field_energy(getattr(pdata.spline_values.em_fields, field).data[t][i]) for t in Nt
-    ]) for i in range(3)
-]
+# extract_field_energy_axes = lambda field: [
+#     xp.array([
+#         field_energy(getattr(pdata.spline_values.em_fields, field).data[t][i]) for t in Nt
+#     ]) for i in range(3)
+# ]
 
-electric_energy = extract_field_energy_axes("e_field_log")
-magnetic_energy = extract_field_energy_axes("b_field_log")
+# electric_energy = extract_field_energy_axes("e_field_log")
+# magnetic_energy = extract_field_energy_axes("b_field_log")
 
-fig, ax = plt.subplots(1, figsize = (14,8))
+# fig, ax = plt.subplots(1, figsize = (14,8))
 
-ax.plot(pdata.t_grid, electric_energy[0], label = r"$E_1^2$/2", color = "blue")
-ax.plot(pdata.t_grid, electric_energy[1], label = r"$E_2^2$/2", color = "green")
-ax.plot(pdata.t_grid, magnetic_energy[2], label = r"$B_3^2$/2", color = "red")
+# ax.plot(pdata.t_grid, electric_energy[0], label = r"$E_1^2$/2", color = "blue")
+# ax.plot(pdata.t_grid, electric_energy[1], label = r"$E_2^2$/2", color = "green")
+# ax.plot(pdata.t_grid, magnetic_energy[2], label = r"$B_3^2$/2", color = "red")
 
-ax.set_xlabel("time [a.u]")
-ax.set_ylabel("Energy [a.u.]")
-ax.set_title(fr"{ppc=}, maxwellian_perturbation($\alpha$)={1e-4 if 'perbT' in save_path else '0.0'}")
+# ax.set_xlabel("time [a.u]")
+# ax.set_ylabel("Energy [a.u.]")
+# ax.set_title(fr"{ppc=}, maxwellian_perturbation($\alpha$)={1e-4 if 'perbT' in save_path else '0.0'}")
 
-ax.set_ylim(1e-14,1e0)
-ax.set_xlim(0,500)
+# ax.set_ylim(1e-14,1e0)
+# ax.set_xlim(0,500)
 
-ax.grid()
-ax.minorticks_on()
+# ax.grid()
+# ax.minorticks_on()
 
-# growth rate
-exp_func = lambda x, m, b: 10**(m*x + b)
+# # growth rate
+# exp_func = lambda x, m, b: 10**(m*x + b)
 
-xf = xp.abs(pdata.t_grid - 200).argmin()  + 1 # index of time 200 [a.u.] (observed end of growth rate)
+# xf = xp.abs(pdata.t_grid - 200).argmin()  + 1 # index of time 200 [a.u.] (observed end of growth rate)
 
-params = xp.polyfit(pdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
-ax.plot(
-    pdata.t_grid,
-    exp_func(pdata.t_grid, *params),
-    label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
-    color="cyan"
-)
+# params = xp.polyfit(pdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
+# ax.plot(
+#     pdata.t_grid,
+#     exp_func(pdata.t_grid, *params),
+#     label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
+#     color="cyan"
+# )
 
-ax.plot(
-    pdata.t_grid,
-    exp_func(pdata.t_grid, 0.02784, params[1]),
-    label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
-    color="cyan",
-    ls="--",
-    alpha=0.5
-)
+# ax.plot(
+#     pdata.t_grid,
+#     exp_func(pdata.t_grid, 0.02784, params[1]),
+#     label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
+#     color="cyan",
+#     ls="--",
+#     alpha=0.5
+# )
 
-ax.legend(ncol = 2)
-ax.set_yscale("log")
-plt.tight_layout()
-
-plt.savefig(os.path.join(save_path,"E"))
-
-# ### Binning distribution progression ###      
-# e1_bins = pdata.f["PlottingDataetic_ions"]["sim_pathensity"]["grid_e1"]
-# v1_bins = pdata.f["PlottingDataetic_ions"]["sim_pathensity"]["grid_v1"]  
-# nrows = 5
-# ncols = 4
-# ntime = len(pdata.f["PlottingDataetic_ions"]["sim_pathensity"]["f_binned"]) 
-# time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
-
-# fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
-# for i in range(nrows):
-#     for j in range(ncols):
-#         ax_maxwellian = axs[i][j]
-#         time_idx = time_indices[j + i*ncols]
-
-#         #maxwellian distribution plot
-#         color_mapped = pdata.f["PlottingDataetic_ions"]["sim_pathensity"]["f_binned"][time_idx].T
-#         pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
-
-#         ax_maxwellian.set_xlabel(r"$\eta_1$")
-#         ax_maxwellian.set_ylabel(r"$v_x$")
-#         ax_maxwellian.set_title(fr"full-$f$ at t = {pdata.PlottingData[time_idx]:4.2e} ssim_path
-#         fig.colorbar(pcm, ax = ax_maxwellian)
-        
+# ax.legend(ncol = 2)
+# ax.set_yscale("log")
 # plt.tight_layout()
-# plt.savefig(os.path.join(save_path, "dfPhaseSpace"))
+
+# plt.savefig(os.path.join(save_path,"E"))
+
+### Binning distribution evolution ###      
+e1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_e1
+v1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_v1  
+nrows = 5
+ncols = 4
+ntime = len(pdata.f.kinetic_ions.e1_v1_density.f_binned) 
+time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
+
+def plot_phaseSpace(bin):
+    fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
+    for i in range(nrows):
+        for j in range(ncols):
+            ax_maxwellian = axs[i][j]
+            time_idx = time_indices[j + i*ncols]
+
+            #maxwellian distribution plot
+            color_mapped = getattr(pdata.f.kinetic_ions.e1_v1_density, bin)[time_idx].T
+            pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
+
+            ax_maxwellian.set_xlabel(r"$\eta_1$")
+            ax_maxwellian.set_ylabel(r"$v_x$")
+            ax_maxwellian.set_title(fr"full-$f$ at t = {pdata.t_grid[time_idx]:4.2e}")
+            fig.colorbar(pcm, ax = ax_maxwellian)
+            
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, f"{bin}_phaseSpace"))
+
+plot_phaseSpace("f_binned")
+plot_phaseSpace("delta_f_binned")
 
 # ### Current density evolution ###
 # current_density_path = os.path.join(save_path, "current_density")
