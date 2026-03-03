@@ -71,13 +71,15 @@ model.kinetic_ions.set_species_properties(alpha=1.0, epsilon=-1.0)
 model.em_fields.e_field.save_data = True
 model.em_fields.phi.save_data = True
 model.kinetic_ions.var.save_data = True
+model.measure_gauss_error(measure = True)
 
 # --------------------------
 # Instance of the simulation
 # --------------------------
 
 # Environment options
-env = EnvironmentOptions(sim_folder="simData_500ppc_perbF_controlVariateF", save_step = 5, max_runtime=xp.inf)
+sim_folder = "simData_1000ppc_controlVariateT"
+env = EnvironmentOptions(sim_folder=sim_folder)
 
 # Units
 base_units = BaseUnits()
@@ -114,25 +116,27 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc = 500, 
+loading_params = LoadingParameters(Np = 100000, 
                                    set_zero_velocity = (False, False, True), 
                                    moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,1.0),
+                                   seed=1234,
                                    )
-weights_params = WeightsParameters(control_variate = False)
+weights_params = WeightsParameters(control_variate = "T" == sim_folder.split("_")[-1][-1])
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,
                                boundary_params=boundary_params,
-                               bufsize = 0.4,
+                               bufsize = 2.0,
                                )
 model.kinetic_ions.set_sorting_boxes(boxes_per_dim = (16,1,1), do_sort = True)
 
 binplot_dens = BinningPlot(slice="e1_v1", n_bins= (128, 128), ranges= ((0.,1.), (-0.1,0.1))) 
+binplot_velocity = BinningPlot(slice="v1_v2", n_bins= (128, 128), ranges= ((-0.1,0.1), (-0.1,0.1))) 
 binplot_current = tuple(
     [BinningPlot(slice=f"e{i}", n_bins= 32, ranges= (0.,1.), output_quantity=f"current_{j}") for j in range(1,4) for i in range(1,4)] 
     )
 
-model.kinetic_ions.set_save_data(binning_plots=(binplot_dens, *binplot_current))
+model.kinetic_ions.set_save_data(binning_plots=(binplot_dens, binplot_velocity, *binplot_current))
 
 # ------------------
 # Propagator options

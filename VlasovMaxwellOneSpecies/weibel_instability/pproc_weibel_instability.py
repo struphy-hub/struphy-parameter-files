@@ -1,4 +1,4 @@
-import params_weibel_instability as damping_params
+import params_weibel_instability as params
 
 import os
 import h5py
@@ -9,8 +9,9 @@ from struphy.physics.physics import Units
 from struphy import PostProcessor, PlottingData
 
 # post process raw data
-sim_path = os.path.join(os.getcwd(), "simData_500ppc_perbF_controlVariateF")
-save_path = os.path.join(os.getcwd(), "result", "noPerb", "controlVariateF")
+sim_name = params.sim_folder
+sim_path = os.path.join(os.getcwd(), sim_name)
+save_path = os.path.join(os.getcwd(), "result", "noPerb", "controlVariate"+sim_name[-1])
 
 pp = PostProcessor(path_out = sim_path)
 pp.process()
@@ -20,18 +21,18 @@ pdata = PlottingData(path_out=sim_path)
 pdata.load()
 
 # get parameters
-dt = damping_params.time_opts.dt
-Tend = damping_params.time_opts.Tend
-algo = damping_params.time_opts.split_algo
-Nel = damping_params.grid.Nel
-p = damping_params.derham_opts.p
+dt = params.time_opts.dt
+Tend = params.time_opts.Tend
+algo = params.time_opts.split_algo
+Nel = params.grid.Nel
+p = params.derham_opts.p
 
-env = damping_params.env
-ppc = damping_params.loading_params.ppc
+env = params.env
+ppc = params.loading_params.ppc
 
 #get units
-units = Units(damping_params.base_units)
-model = damping_params.model
+units = Units(params.base_units)
+model = params.model
 model.units = units
 A_bulk = model.bulk_species.mass_number
 Z_bulk = model.bulk_species.charge_number
@@ -42,164 +43,200 @@ model.units.derive_units(
 )
 unit_t = model.units.t
 
-### Plot EM-field of each time step ###
-def plot_EM_state(time_step: int, n_dim = 3):
-    eta1 = pdata.grids_log[0]
+control_variate = params.weights_params.control_variate
+split_algo = params.time_opts.split_algo
 
-    electric_field = pdata.spline_values.em_fields.e_field_log.data[time_step]
-    magnetic_field = pdata.spline_values.em_fields.b_field_log.data[time_step]
-    
-    fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize = (8,6), sharex = True, sharey = True)
+### Gauss law violation and progression of EM-field energy along different direction###
 
-    for i in range(n_dim):
-        axs[0,i].plot(eta1, electric_field[i][:,0,0])
-        axs[0,i].set_title(fr"$E_{i+1}$")
+if MPI.COMM_WORLD.Get_rank() == 0:
+    # read data for gauss law violation
+    pa_data = os.path.join(sim_name, "data")
+    with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
+        time = f["time"]["value"][()]
+        gauss_error = f["scalar"]["gauss_error"][()]
 
-        axs[1,i].plot(eta1, magnetic_field[i][:,0,0])
-        axs[1,i].set_title(fr"$B_{i+1}$")
-    
-    axs[0,0].set_ylabel(r"Electric field value")
-    axs[1,0].set_ylabel(r"Magnetic field value")
-    axs[1,0].set_xlabel(r"$\eta_1$")
-    axs[1,1].set_xlabel(r"$\eta_2$")
-    axs[1,2].set_xlabel(r"$\eta_3$")
 
-    axs[0,0].set_ylim(-5e-3, 5e-3)
-    axs[1,0].set_ylim(-5e-3, 5e-3)
+    # Progression of energy in EM-field along different directions
+    phy_grid = pdata.grids_phy[0].shape
 
-    fig.suptitle(f"EM-field at time step: {time_step}")
+    Nt = pdata.t_grid
+    unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
 
-os.makedirs(os.path.dirname(save_path), exist_ok=True)
-for i in xp.arange(0, Tend, dt):
-    plot_EM_state(i)
-    plt.savefig(os.path.join(save_path, "EM_state", f"{i:.2f}".replace(".", "_") + ".png"))
-    plt.close()
+    def field_energy(field) -> float:
+        """
+        Calculate totoal energy of field in space
+        """
 
-### Progression of energy in EM-field along different directions ###
-phy_grid = pdata.grids_phy[0].shape
+        energy_square = xp.sum(field ** 2)
 
-Nt = pdata.t_grid
-unit_volume = xp.prod([1/(phy_grid[i] - 1) for i in range(len(phy_grid))])
+        return energy_square * unit_volume / 2
 
-def field_energy(field) -> float:
-    """
-    Calculate totoal energy of field in space
-    """
+    extract_field_energy_axes = lambda field: [
+        xp.array([
+            field_energy(getattr(pdata.spline_values.em_fields, field).data[t][i]) for t in Nt
+        ]) for i in range(3)
+    ]
 
-    energy_square = xp.sum(field ** 2)
+    electric_energy = extract_field_energy_axes("e_field_log")
+    magnetic_energy = extract_field_energy_axes("b_field_log")
 
-    return energy_square * unit_volume / 2
+    # plot
+    fig, axs = plt.subplots(nrows = 2, ncols = 1, figsize = (10,6), sharex = True)
 
-extract_field_energy_axes = lambda field: [
-    xp.array([
-        field_energy(getattr(pdata.spline_values.em_fields, field).data[t][i]) for t in Nt
-    ]) for i in range(3)
-]
+    # plot of energy in EM-fields
+    axs[0].plot(pdata.t_grid, electric_energy[0], label = r"|$E_1|^2$/2", color = "blue")
+    axs[0].plot(pdata.t_grid, electric_energy[1], label = r"|$E_2|^2$/2", color = "green")
+    axs[0].plot(pdata.t_grid, magnetic_energy[2], label = r"|$B_3|^2$/2", color = "red")
 
-electric_energy = extract_field_energy_axes("e_field_log")
-magnetic_energy = extract_field_energy_axes("b_field_log")
+    # determine magnetic field growth rate
+    exp_func = lambda x, m, b: 10**(m*x + b)
 
-fig, ax = plt.subplots(1, figsize = (14,8))
+    xf = xp.abs(pdata.t_grid - 200).argmin()  + 1 # index of time 200 [a.u.] (observed end of growth rate)
 
-ax.plot(pdata.t_grid, electric_energy[0], label = r"$E_1^2$/2", color = "blue")
-ax.plot(pdata.t_grid, electric_energy[1], label = r"$E_2^2$/2", color = "green")
-ax.plot(pdata.t_grid, magnetic_energy[2], label = r"$B_3^2$/2", color = "red")
+    params = xp.polyfit(pdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
+    axs[0].plot(
+        pdata.t_grid,
+        exp_func(pdata.t_grid, *params),
+        label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
+        color="cyan"
+    )
 
-ax.set_xlabel("time [a.u]")
-ax.set_ylabel("Energy [a.u.]")
-ax.set_title(fr"{ppc=}, maxwellian_perturbation($\alpha$)={1e-4 if 'perbT' in save_path else '0.0'}")
+    axs[0].plot(
+        pdata.t_grid,
+        exp_func(pdata.t_grid, 0.02784, params[1]),
+        label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
+        color="cyan",
+        ls="--",
+        alpha=0.5
+    )
+    axs[0].legend(ncol = 2)
 
-ax.set_ylim(1e-14,1e0)
-ax.set_xlim(0,500)
+    axs[0].set_title(f"Field energy: {split_algo=}, {ppc=}, {control_variate=}")
+    axs[0].set_title("Energy in EM field")
+    axs[0].set_ylabel("Energy [a.u.]")
+    axs[0].set_xlabel("time")
+    axs[0].set_ylim(1e-14,1e0)
+    axs[0].set_xlim(0,500)
 
-ax.grid()
-ax.minorticks_on()
+    axs[0].grid()
+    axs[0].minorticks_on()
 
-# growth rate
-exp_func = lambda x, m, b: 10**(m*x + b)
+    # plot of gauss violation
+    axs[1].plot(time, gauss_error, color = "black")
+    axs[1].set_title("Gauss law violation")
+    axs[1].set_ylim(1e-9,1e-2)
+    axs[1].set_ylabel("residual [a.u.]")
 
-xf = xp.abs(pdata.t_grid - 200).argmin()  + 1 # index of time 200 [a.u.] (observed end of growth rate)
+    for ax in axs: ax.grid(); ax.set_yscale("log"); ax.legend(loc = "lower right")
 
-params = xp.polyfit(pdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
-ax.plot(
-    pdata.t_grid,
-    exp_func(pdata.t_grid, *params),
-    label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
-    color="cyan"
-)
-
-ax.plot(
-    pdata.t_grid,
-    exp_func(pdata.t_grid, 0.02784, params[1]),
-    label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
-    color="cyan",
-    ls="--",
-    alpha=0.5
-)
-
-ax.legend(ncol = 2)
-ax.set_yscale("log")
-plt.tight_layout()
-
-plt.savefig(os.path.join(save_path,"E"))
-
-### Binning distribution evolution ###      
-e1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_e1
-v1_bins = pdata.f.kinetic_ions.e1_v1_density.grid_v1  
-nrows = 5
-ncols = 4
-ntime = len(pdata.f.kinetic_ions.e1_v1_density.f_binned) 
-time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
-
-def plot_phaseSpace(bin):
-    fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
-    for i in range(nrows):
-        for j in range(ncols):
-            ax_maxwellian = axs[i][j]
-            time_idx = time_indices[j + i*ncols]
-
-            #maxwellian distribution plot
-            color_mapped = getattr(pdata.f.kinetic_ions.e1_v1_density, bin)[time_idx].T
-            pcm = ax_maxwellian.pcolor(e1_bins,v1_bins, color_mapped)
-
-            ax_maxwellian.set_xlabel(r"$\eta_1$")
-            ax_maxwellian.set_ylabel(r"$v_x$")
-            ax_maxwellian.set_title(fr"full-$f$ at t = {pdata.t_grid[time_idx]:4.2e}")
-            fig.colorbar(pcm, ax = ax_maxwellian)
-            
+    fig.suptitle(f"VlasovMaxwellOneSpecies simulation:\n {control_variate=}, {ppc=}, {algo=}")
     plt.tight_layout()
-    plt.savefig(os.path.join(save_path, f"{bin}_phaseSpace"))
+    plt.savefig(os.path.join(save_path,"E"))
 
-plot_phaseSpace("f_binned")
-plot_phaseSpace("delta_f_binned")
+    ### Binning distribution evolution ###      
+    nrows = 5
+    ncols = 4
+    ntime = len(pdata.f.kinetic_ions.e1_v1_density.f_binned) 
+    time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
-### Current density evolution ###
-current_density_path = os.path.join(save_path, "current_density")
-os.makedirs(current_density_path,exist_ok=True)
+    def plot_phaseSpace(bin, bin_name):
+        bins = bin_name.split("_")[:-1]
+        grid_1, grid_2, *_ = ["grid_" + s for s in bins]
+        bins_1 = getattr(getattr(pdata.f.kinetic_ions, bin_name), grid_1)
+        bins_2 = getattr(getattr(pdata.f.kinetic_ions, bin_name), grid_2)
 
-def current_1D(time:int):
-    time_step = abs(pdata.t_grid - time).argmin()
-    fig, ax = plt.subplots(nrows = 3, ncols = 3, figsize = (9,9),sharey = True, sharex = True)
+        fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
+        for i in range(nrows):
+            for j in range(ncols):
+                ax_maxwellian = axs[i][j]
+                time_idx = time_indices[j + i*ncols]
 
-    for i in range(3):
-        for j in range(3):
+                #maxwellian distribution plot
+                color_mapped = getattr(
+                    getattr(pdata.f.kinetic_ions, bin_name), bin
+                    )[time_idx].T
+                pcm = ax_maxwellian.pcolor(bins_1, bins_2, color_mapped)
 
-            e_bins = getattr(pdata.f.kinetic_ions, f"e{i+1}_current_{j+1}").f_binned[time_step]
-            es = xp.linspace(0,1,e_bins.shape[0])
+                ax_maxwellian.set_xlabel(bins[0])
+                ax_maxwellian.set_ylabel(bins[1])
+                ax_maxwellian.set_title(f"{bin} at t = {pdata.t_grid[time_idx]:4.2e}")
+                fig.colorbar(pcm, ax = ax_maxwellian)
+                
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_path, f"{bin_name}_{bin}_phaseSpace"))
 
-            ax[i,j].axhline(color = "red", alpha = 0.5)
-            ax[i,j].plot(es, e_bins)
+    plot_phaseSpace("f_binned", bin_name="e1_v1_density")
+    plot_phaseSpace("delta_f_binned", bin_name="e1_v1_density")
+    plot_phaseSpace("f_binned",bin_name="v1_v2_density")
+    plot_phaseSpace("delta_f_binned",bin_name="v1_v2_density")
 
-        ax[i,0].set_ylim(-0.01,0.01)
 
-    for i in range(3): ax[i,0].set_ylabel(fr"$j_{i+1}$")
-    for j in range(3): ax[2,j].set_xlabel(fr"$\eta_{ {j+1} }$")
+    ### Plot EM-field of each time step ###
+    def plot_EM_state(time_step: int, n_dim = 3):    
+        time_step = pdata.t_grid[abs(pdata.t_grid - time_step).argmin()]
+        eta1 = pdata.grids_log[0]
 
-    fig.suptitle(f"Current density at time {time}")
+        electric_field = pdata.spline_values.em_fields.e_field_log.data[time_step]
+        magnetic_field = pdata.spline_values.em_fields.b_field_log.data[time_step]
+        
+        fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize = (8,6), sharex = True, sharey = True)
 
-    plt.tight_layout()
-    plt.savefig(os.path.join(current_density_path, str(time).replace(".","_")))
-    plt.clf()
+        for i in range(n_dim):
+            axs[0,i].plot(eta1, electric_field[i][:,0,0])
+            axs[0,i].set_title(fr"$E_{i+1}$")
 
-for t in xp.arange(0, Tend, dt):
-    current_1D(t)
+            axs[1,i].plot(eta1, magnetic_field[i][:,0,0])
+            axs[1,i].set_title(fr"$B_{i+1}$")
+        
+        axs[0,0].set_ylabel(r"Electric field value")
+        axs[1,0].set_ylabel(r"Magnetic field value")
+        axs[1,0].set_xlabel(r"$\eta_1$")
+        axs[1,1].set_xlabel(r"$\eta_2$")
+        axs[1,2].set_xlabel(r"$\eta_3$")
+
+        axs[0,0].set_ylim(-5e-3, 5e-3)
+        axs[1,0].set_ylim(-5e-3, 5e-3)
+
+        fig.suptitle(f"EM-field at time step: {time_step:.2f}, {ppc=},{control_variate=}")
+
+        return time_step
+
+        os.makedirs(os.path.join(save_path, "EM_state"), exist_ok=True)
+        for t in xp.arange(0, Tend, 5):
+            time_step = plot_EM_state(t)
+            plt.savefig(os.path.join(save_path, "EM_state", f"{time_step:.2f}.png"))
+            plt.close()
+
+    ### Current density evolution ###
+    current_density_path = os.path.join(save_path, "current_density")
+    os.makedirs(current_density_path,exist_ok=True)
+
+    def current_1D(time:int):
+        time_step = abs(pdata.t_grid - time).argmin()
+        fig, ax = plt.subplots(nrows = 3, ncols = 3, figsize = (9,9),sharey = True, sharex = True)
+
+        for i in range(3):
+            for j in range(3):
+
+                e_bins = getattr(pdata.f.kinetic_ions, f"e{i+1}_current_{j+1}").f_binned[time_step]
+                es = xp.linspace(0,1,e_bins.shape[0])
+
+                ax[i,j].axhline(color = "red", alpha = 0.5)
+                ax[i,j].plot(es, e_bins)
+
+            ax[i,0].set_ylim(-0.01,0.01)
+
+        for i in range(3): ax[i,0].set_ylabel(fr"$j_{i+1}$")
+        for j in range(3): ax[2,j].set_xlabel(fr"$\eta_{ {j+1} }$")
+
+        fig.suptitle(f"Current density at time {time:.2f}")
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(
+            current_density_path,
+            f"{time:.2f}".replace(".", "_") + ".png"
+        ))
+        plt.close()
+
+    for t in xp.arange(0, Tend, 5):
+        current_1D(t)
