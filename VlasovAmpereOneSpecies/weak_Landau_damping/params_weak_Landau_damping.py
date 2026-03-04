@@ -16,34 +16,31 @@ Vlasov-Ampère system and the accuracy of particle-in-cell methods.
 # Import Struphy API
 # ------------------
 
+# For particles:
 from struphy import (
     BaseUnits,
+    BinningPlot,
+    BoundaryParameters,
     DerhamOptions,
     EnvironmentOptions,
     FieldsBackground,
+    KernelDensityPlot,
+    LoadingParameters,
     Simulation,
     Time,
+    WeightsParameters,
     domains,
     equils,
     grids,
+    maxwellians,
     perturbations,
 )
-
-# For particles:
-from struphy import (
-    BinningPlot,
-    BoundaryParameters,
-    KernelDensityPlot,
-    LoadingParameters,
-    WeightsParameters,
-    maxwellians,
-)
+from struphy.models import VlasovAmpereOneSpecies
 
 # ---------------------
 # Instance of the model
 # ---------------------
 
-from struphy.models import VlasovAmpereOneSpecies
 model = VlasovAmpereOneSpecies(with_B0 = False)
 
 # List all species and set their physical properties (charge and mass number, etc.)

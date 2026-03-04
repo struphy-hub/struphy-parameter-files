@@ -15,36 +15,32 @@ leading to the generation of transverse magnetic fields.
 # Import Struphy API
 # ------------------
 
-from struphy import (
-    BaseUnits,
-    DerhamOptions,
-    EnvironmentOptions,
-    FieldsBackground,
-    Simulation,
-    Time,
-    domains,
-    equils,
-    grids,
-    perturbations,
-)
+import cunumpy as xp
 
 # For particles:
 from struphy import (
+    BaseUnits,
     BinningPlot,
     BoundaryParameters,
+    DerhamOptions,
+    EnvironmentOptions,
+    FieldsBackground,
     KernelDensityPlot,
     LoadingParameters,
+    Simulation,
+    Time,
     WeightsParameters,
+    domains,
+    equils,
+    grids,
     maxwellians,
+    perturbations,
 )
-
 
 # ---------------------
 # Instance of the model
 # ---------------------
 from struphy.models import VlasovMaxwellOneSpecies
-
-import cunumpy as xp
 
 # ---------------------
 # Parameters setup
@@ -116,12 +112,12 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(Np = 100000, 
+loading_params = LoadingParameters(ppc = 1000, 
                                    set_zero_velocity = (False, False, True), 
                                    moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,1.0),
                                    seed=1234,
                                    )
-weights_params = WeightsParameters(control_variate = "T" == sim_folder.split("_")[-1][-1])
+weights_params = WeightsParameters(control_variate = "T" == sim_folder[-1])
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,

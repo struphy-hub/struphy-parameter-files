@@ -1,11 +1,12 @@
-import params_strong_Landau_damping as damping_params
-
 import os
+
 import h5py
-from feectools.ddm.mpi import mpi as MPI
+import params_strong_Landau_damping as damping_params
 from matplotlib import pyplot as plt
+
+from feectools.ddm.mpi import mpi as MPI
+from struphy import PlottingData, PostProcessor
 from struphy.physics.physics import Units
-from struphy import PostProcessor, PlottingData
 
 ### Electric field progression ###
 # get parameters
