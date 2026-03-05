@@ -67,14 +67,14 @@ model.kinetic_ions.set_species_properties(alpha=1.0, epsilon=-1.0)
 model.em_fields.e_field.save_data = True
 model.em_fields.phi.save_data = True
 model.kinetic_ions.var.save_data = True
-model.measure_gauss_error(measure = True)
+# model.measure_gauss_error(measure = True)
 
 # --------------------------
 # Instance of the simulation
 # --------------------------
 
 # Environment options
-sim_folder = "simData_1000ppc_controlVariateT"
+sim_folder = "simData_1000ppc_controlVariateF"
 env = EnvironmentOptions(sim_folder=sim_folder)
 
 # Units
