@@ -17,31 +17,34 @@ of the particle-in-cell method in capturing mode coupling and energy transfer ph
 # Import Struphy API
 # ------------------
 
-# For particles:
 from struphy import (
     BaseUnits,
-    BinningPlot,
-    BoundaryParameters,
     DerhamOptions,
     EnvironmentOptions,
     FieldsBackground,
-    KernelDensityPlot,
-    LoadingParameters,
     Simulation,
     Time,
-    WeightsParameters,
     domains,
     equils,
     grids,
-    maxwellians,
     perturbations,
 )
-from struphy.models import VlasovAmpereOneSpecies
+
+# For particles:
+from struphy import (
+    BinningPlot,
+    BoundaryParameters,
+    KernelDensityPlot,
+    LoadingParameters,
+    WeightsParameters,
+    maxwellians,
+)
 
 # ---------------------
 # Instance of the model
 # ---------------------
 
+from struphy.models import VlasovAmpereOneSpecies
 model = VlasovAmpereOneSpecies(with_B0 = False)
 
 # List all species and set their physical properties (charge and mass number, etc.)

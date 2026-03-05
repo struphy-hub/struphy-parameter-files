@@ -1,11 +1,10 @@
-import os
-
-import h5py
 import params_bump_on as damping_params
-from matplotlib import pyplot as plt
 
+import os
+import h5py
 from feectools.ddm.mpi import mpi as MPI
-from struphy import PlottingData, PostProcessor
+from matplotlib import pyplot as plt
+from struphy import PostProcessor, PlottingData
 from struphy.physics.physics import Units
 
 # post process raw data

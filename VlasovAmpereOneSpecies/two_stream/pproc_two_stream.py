@@ -1,12 +1,11 @@
-import os
-
-import h5py
 import params_two_stream as damping_params
-from matplotlib import pyplot as plt
 
+import os
+import h5py
 from feectools.ddm.mpi import mpi as MPI
-from struphy import PlottingData, PostProcessor
+from matplotlib import pyplot as plt
 from struphy.physics.physics import Units
+from struphy import PostProcessor, PlottingData
 
 ### Electric field progression ###
 # get parameters
