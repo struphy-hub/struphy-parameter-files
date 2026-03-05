@@ -29,7 +29,7 @@ Nel = params.grid.Nel
 p = params.derham_opts.p
 
 env = params.env
-ppc = params.loading_params.ppc
+ppc = params.loading_params.Np // 32 # 32 grid points
 
 #get units
 units = Units(params.base_units)
@@ -49,19 +49,11 @@ split_algo = params.time_opts.split_algo
 
 
 # ------------------
-# Gauss law violation and 
 # progression of EM-field energy 
 # along different direction
 # ------------------
 
-# read data for gauss law violation
-pa_data = os.path.join(sim_name, "data")
-with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
-    time = f["time"]["value"][()]
-    gauss_error = f["scalar"]["gauss_error"][()]
-
-
-# Progression of energy in EM-field along different directions
+# energy in EM-field along different directions
 phy_grid = pdata.grids_phy[0].shape
 
 Nt = pdata.t_grid
@@ -86,27 +78,28 @@ electric_energy = extract_field_energy_axes("e_field_log")
 magnetic_energy = extract_field_energy_axes("b_field_log")
 
 # plot
-fig, axs = plt.subplots(nrows = 2, ncols = 1, figsize = (10,6), sharex = True)
+fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10,6), sharex = True)
 
 # plot of energy in EM-fields
-axs[0].plot(pdata.t_grid, electric_energy[0], label = r"|$E_1|^2$/2", color = "blue")
-axs[0].plot(pdata.t_grid, electric_energy[1], label = r"|$E_2|^2$/2", color = "green")
-axs[0].plot(pdata.t_grid, magnetic_energy[2], label = r"|$B_3|^2$/2", color = "red")
+ax.plot(pdata.t_grid, electric_energy[0], label = r"|$E_1|^2$/2", color = "blue")
+ax.plot(pdata.t_grid, electric_energy[1], label = r"|$E_2|^2$/2", color = "green")
+ax.plot(pdata.t_grid, magnetic_energy[2], label = r"|$B_3|^2$/2", color = "red")
 
 # determine magnetic field growth rate
 exp_func = lambda x, m, b: 10**(m*x + b)
 
-xf = xp.abs(pdata.t_grid - 200).argmin()  + 1 # index of time 200 [a.lu.] (observed end of growth rate)
+xi = xp.abs(pdata.t_grid - 100).argmin() + 1 # index of time 100 [a.lu.] (observed end of growth rate)
+xf = xp.abs(pdata.t_grid - 200).argmin() + 1 # index of time 200 [a.lu.] (observed end of growth rate)
 
-params = xp.polyfit(pdata.t_grid[:xf], xp.log10(magnetic_energy[2][:xf]), deg = 1)
-axs[0].plot(
+params = xp.polyfit(pdata.t_grid[xi:xf], xp.log10(magnetic_energy[2][xi:xf]), deg = 1)
+ax.plot(
     pdata.t_grid,
     exp_func(pdata.t_grid, *params),
     label="fitted growth rate\n" + fr"$10^{{{params[0]:.5f}x {params[1]:.0f}}}$",
     color="cyan"
 )
 
-axs[0].plot(
+ax.plot(
     pdata.t_grid,
     exp_func(pdata.t_grid, 0.02784, params[1]),
     label="analytical growth rate\n" + fr"$10^{{0.02784x {params[1]:.0f}}}$",
@@ -115,21 +108,16 @@ axs[0].plot(
     alpha=0.5
 )
 
-axs[0].set_title(f"Field energy: {split_algo=}, {ppc=}, {control_variate=}")
-axs[0].set_title("Energy in EM field")
-axs[0].set_ylabel("Energy [a.u.]")
-axs[0].set_xlabel("time")
-axs[0].set_ylim(1e-14,1e0)
-axs[0].set_xlim(0,500)
-axs[0].legend(ncol = 3)
+ax.set_title(f"Field energy: {split_algo=}, {ppc=}, {control_variate=}")
+ax.set_title("Energy in EM field")
+ax.set_ylabel("Energy [a.u.]")
+ax.set_xlabel("time")
+ax.set_ylim(1e-14,1e0)
+ax.set_xlim(0,Tend)
+ax.legend(ncol = 3)
 
-# plot of gauss violation
-axs[1].plot(time, gauss_error, color = "black")
-axs[1].set_title("Gauss law violation")
-axs[1].set_ylim(1e-9,1e-2)
-axs[1].set_ylabel("residual [a.u.]")
-
-for ax in axs: ax.grid(); ax.set_yscale("log"), ax.minorticks_on()
+ax.set_yscale("log")
+ax.minorticks_on()
 
 fig.suptitle(f"VlasovMaxwellOneSpecies simulation:\n {control_variate=}, {ppc=}, {algo=}")
 plt.tight_layout()
@@ -177,6 +165,7 @@ plot_phaseSpace("delta_f_binned", bin_name="e1_v1_density")
 plot_phaseSpace("f_binned",bin_name="v1_v2_density")
 plot_phaseSpace("delta_f_binned",bin_name="v1_v2_density")
 
+
 # ------------------
 # Plot EM-field of each time step 
 # ------------------
@@ -212,6 +201,7 @@ def plot_EM_state(time_step: int, n_dim = 3):
 os.makedirs(os.path.join(save_path, "EM_state"), exist_ok=True)
 for t in xp.arange(0, Tend, 5):
     plot_EM_state(t)
+
 
 # ------------------
 # Current density evolution
