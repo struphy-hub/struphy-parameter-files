@@ -9,55 +9,55 @@ Weibel instability: A linear test case for the VlasovMaxwellOneSpecies model.
 This test considers a plasma with an anisotropic velocity distribution, where 
 temperature differs between directions. Small magnetic perturbations grow due to the anisotropy, 
 leading to the generation of transverse magnetic fields. 
+
+Note that for this simulaiton, the control_variate is set to False as it violates the Gauss law, 
+and create growth in electric field.
 """
 
 # ------------------
 # Import Struphy API
 # ------------------
 
-import cunumpy as xp
-
-# For particles:
 from struphy import (
     BaseUnits,
-    BinningPlot,
-    BoundaryParameters,
     DerhamOptions,
     EnvironmentOptions,
     FieldsBackground,
-    KernelDensityPlot,
-    LoadingParameters,
     Simulation,
     Time,
-    WeightsParameters,
     domains,
     equils,
     grids,
-    maxwellians,
     perturbations,
+)
+
+# For particles:
+from struphy import (
+    BinningPlot,
+    BoundaryParameters,
+    KernelDensityPlot,
+    LoadingParameters,
+    WeightsParameters,
+    maxwellians,
 )
 
 # ---------------------
 # Instance of the model
 # ---------------------
+
 from struphy.models import VlasovMaxwellOneSpecies
+model = VlasovMaxwellOneSpecies()
 
 # ---------------------
 # Parameters setup
 # ---------------------
 
+import cunumpy as xp
 k = 1.25
 B_pert_amp = -1e-4
 
 vth1_background_val = 0.02/xp.sqrt(2)
 vth2_background_val = vth1_background_val * xp.sqrt(12)
-
-
-# ---------------------
-# Instance of the model
-# ---------------------
-
-model = VlasovMaxwellOneSpecies()
 
 # List all species and set their physical properties (charge and mass number, etc.)
 model.em_fields.set_species_properties()
@@ -67,15 +67,13 @@ model.kinetic_ions.set_species_properties(alpha=1.0, epsilon=-1.0)
 model.em_fields.e_field.save_data = True
 model.em_fields.phi.save_data = True
 model.kinetic_ions.var.save_data = True
-# model.measure_gauss_error(measure = True)
 
 # --------------------------
 # Instance of the simulation
 # --------------------------
 
 # Environment options
-sim_folder = "simData_1000ppc_controlVariateF"
-env = EnvironmentOptions(sim_folder=sim_folder)
+env = EnvironmentOptions(sim_folder="sim_data")
 
 # Units
 base_units = BaseUnits()
@@ -112,12 +110,12 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc = 1000, 
+loading_params = LoadingParameters(Np = 100000, 
                                    set_zero_velocity = (False, False, True), 
                                    moments = (0.0,0.0,0.0,vth1_background_val,vth2_background_val,1.0),
                                    seed=1234,
                                    )
-weights_params = WeightsParameters(control_variate = "T" == sim_folder[-1])
+weights_params = WeightsParameters(control_variate = False)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,
