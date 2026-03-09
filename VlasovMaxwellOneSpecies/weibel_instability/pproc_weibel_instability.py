@@ -60,6 +60,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     fig, ax = plt.subplots(1, figsize = (10,6))
     ax.plot(time, gauss_error)
 
+    ax.set_xlim(0, Tend)
     ax.set_yscale("log")
 
     ax.set_xlabel("time")
@@ -67,6 +68,7 @@ if MPI.COMM_WORLD.Get_rank() == 0:
     ax.set_title("Gauss law violation as function of time")
 
     ax.grid()
+    plt.tight_layout()
     plt.savefig(os.path.join(save_path,"gauss_law"))
 
 
@@ -250,12 +252,12 @@ def current_1D(time:int):
     for i in range(3): ax[i,0].set_ylabel(fr"$j_{i+1}$")
     for j in range(3): ax[2,j].set_xlabel(fr"$\eta_{ {j+1} }$")
 
-    fig.suptitle(f"Current density at time {time:.2f}")
+    fig.suptitle(f"Current density at time {pdata.t_grid[time_step]:.2f}")
 
     plt.tight_layout()
     plt.savefig(os.path.join(
         current_density_path,
-        f"{time:.2f}".replace(".", "_") + ".png"
+        f"{pdata.t_grid[time_step]:.2f}".replace(".", "_") + ".png"
     ))
     plt.close()
 
