@@ -10,9 +10,8 @@ from struphy import PlottingData, PostProcessor
 from struphy.physics.physics import Units
 
 # post process raw data
-sim_name = params.sim_folder
-sim_path = os.path.join(os.getcwd(), sim_name)
-save_path = os.path.join(os.getcwd(), "result", "noPerb", "controlVariate"+sim_name[-1])
+sim_path = os.path.join(os.getcwd(), params.env.sim_folder)
+save_path = os.path.join(os.getcwd(), "result")
 
 pp = PostProcessor(path_out = sim_path)
 pp.process()
@@ -46,6 +45,29 @@ unit_t = model.units.t
 
 control_variate = params.weights_params.control_variate
 split_algo = params.time_opts.split_algo
+
+
+# ------------------
+# Gauss law violation
+# ------------------
+
+if MPI.COMM_WORLD.Get_rank() == 0:
+    pa_data = os.path.join(env.path_out, "data")
+    with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
+        time = f["time"]["value"][()]
+        gauss_error = f["scalar"]["gauss_error"][()]
+
+    fig, ax = plt.subplots(1, figsize = (10,6))
+    ax.plot(time, gauss_error)
+
+    ax.set_yscale("log")
+
+    ax.set_xlabel("time")
+    ax.set_ylabel("gauss error")
+    ax.set_title("Gauss law violation as function of time")
+
+    ax.grid()
+    plt.savefig(os.path.join(save_path,"gauss_law"))
 
 
 # ------------------
