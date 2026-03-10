@@ -115,7 +115,7 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc=10, seed=1234)
+loading_params = LoadingParameters(Np=1000000, seed=1234)
 weights_params = WeightsParameters(control_variate=False)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -124,7 +124,7 @@ model.kinetic_ions.set_markers(loading_params=loading_params,
                                )
 model.kinetic_ions.set_sorting_boxes()
 
-binplot = BinningPlot(slice='e1', n_bins=128, ranges=(0.0, 1.0))
+binplot = BinningPlot(slice='e1_e2', n_bins= (128,128), ranges= ((0.0, 1.0), (0.0,1.0)))
 model.kinetic_ions.set_save_data(binning_plots=(binplot,))
 
 # ------------------
@@ -152,13 +152,15 @@ background = maxwellians.GyroMaxwellian2D(n=(1.0, None), equil=equil)
 model.kinetic_ions.var.add_background(background)
 
 # piecewise function for initial condition of mass density
-def n_init(coordinate,r_minus=4.0,r_plus=5.0):
+r_minus, r_plus = 4.0, 5.0
+ms = 4
+def n_init(coordinate,r_minus=r_minus,r_plus=r_plus):
     radial = (coordinate[:,0]**2 + coordinate[:,1]**2)**(1/2)
 
     return 1.0 * ( (r_minus <= radial) & (radial < r_plus) )
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(given_in_basis="physical_at_eta", amps=(1e-6,), ms=(4,), Ly=2*xp.pi)
+perturbation = perturbations.ModesCos(given_in_basis="physical_at_eta", amps=(1e-6,), ms=(ms,), Ly=2*xp.pi)
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 
