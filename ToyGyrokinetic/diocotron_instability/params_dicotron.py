@@ -6,12 +6,16 @@
 
 name = "Diocotron instability"
 description = """
-This is the default simulation for the model ToyGyrokinetic. 
-It is meant to be a template for users to set up their own simulations with this model. 
-It contains all the necessary components of a Struphy simulation, including the model, 
-the environment options, the time stepping options, the geometry, the equilibrium, 
-the grid, the Derham options, and the initial conditions. 
-Users can modify this file to set up their own simulations with different parameters and initial conditions.
+The Diocotron instability is a shear-driven instability that occurs in non-neutral plasmas confined by a magnetic field. 
+It typically appears when there is velocity shear in the E×B drift of a plasma column.
+
+The parameter of this simulation file is based on a paper called:
+
+'A new fully two-dimensional conservative semi-Lagrangian
+method: applications on polar grids, from diocotron instability
+to ITG turbulence'
+
+DOI: 10.1140/epjd/e2014-50180-9
 """
 
 # ------------------
@@ -61,25 +65,25 @@ model.kinetic_ions.var.save_data = True
 # --------------------------
 
 # Environment options
-env = EnvironmentOptions()
+env = EnvironmentOptions(sim_folder="simdata")
 
 # Units
 base_units = BaseUnits(kBT=1.0)
 
 # Time stepping
-time_opts = Time()
+time_opts = Time(dt=0.05, Tend=80, split_algo="LieTrotter")
 
 # Geometry
-domain = domains.Cuboid()
+domain = domains.HollowCylinder(a1=1, a2=10, Lz=40)
 
 # Fluid equilibrium (can be used as part of initial conditions)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid()
+grid = grids.TensorProductGrid(Nel=(128,128,1))
 
 # Derham options
-derham_opts = DerhamOptions()
+derham_opts = DerhamOptions(p=(3,3,1))
 
 # Simulation object
 sim = Simulation(
@@ -100,8 +104,8 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters()
-weights_params = WeightsParameters()
+loading_params = LoadingParameters(ppc=1000, seed=1234)
+weights_params = WeightsParameters(control_variate=False)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,
@@ -127,9 +131,6 @@ model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(ph
 
 # Background for (some) FEEC variables
 model.em_fields.phi.add_background(FieldsBackground())
-
-# Perturbations for (some) FEEC variables
-model.em_fields.phi.add_perturbation(perturbations.TorusModesCos())
 
 # For kinetic species the background is mandatory.
 # For kinetic species, if add_initial_condition() is not called, the background is taken as the kinetic initial condition.
