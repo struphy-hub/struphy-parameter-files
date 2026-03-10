@@ -73,10 +73,10 @@ env = EnvironmentOptions(sim_folder="simdata")
 base_units = BaseUnits(kBT=1.0)
 
 # Time stepping
-time_opts = Time(dt=0.05, Tend=80, split_algo="LieTrotter")
+time_opts = Time(dt=0.05, Tend=0.05, split_algo="LieTrotter")
 
 # Geometry
-domain = domains.HollowCylinder(a1=1, a2=10, Lz=40)
+domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=40.0)
 
 # Fluid equilibrium (can be used as part of initial conditions)
 equil = equils.HomogenSlab()
@@ -115,7 +115,7 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc=1000, seed=1234)
+loading_params = LoadingParameters(ppc=10, seed=1234)
 weights_params = WeightsParameters(control_variate=False)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -151,16 +151,16 @@ model.em_fields.phi.add_background(FieldsBackground())
 background = maxwellians.GyroMaxwellian2D(n=(1.0, None), equil=equil)
 model.kinetic_ions.var.add_background(background)
 
-# Perturbations for (some) kinetic species
-
-def n_init(x,y,z,r_minus,r_plus):
-    radial = (x**2 + y**2)**(1/2)
+# piecewise function for initial condition of mass density
+def n_init(coordinate,r_minus=4.0,r_plus=5.0):
+    radial = (coordinate[:,0]**2 + coordinate[:,1]**2)**(1/2)
 
     return 1.0 * ( (r_minus <= radial) & (radial < r_plus) )
 
+# Perturbations for (some) kinetic species
 perturbation = perturbations.ModesCos(given_in_basis="physical_at_eta", amps=(1e-6,), ms=(4,), Ly=2*xp.pi)
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 
 if __name__ == "__main__":
-    sim.run(verbose=False)
+    sim.run(verbose=True)
