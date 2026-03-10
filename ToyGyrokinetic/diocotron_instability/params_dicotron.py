@@ -45,6 +45,8 @@ from struphy import (
     maxwellians,
 )
 
+import cunumpy as xp
+
 # ---------------------
 # Instance of the model
 # ---------------------
@@ -146,15 +148,18 @@ model.em_fields.phi.add_background(FieldsBackground())
 # For kinetic species the perturbations are added to the moments of the distribution function (defined as tuples).
 
 # Background for kinetic species
-maxwellian_1 = maxwellians.GyroMaxwellian2D(n=(1.0, None), equil=equil)
-maxwellian_2 = maxwellians.GyroMaxwellian2D(n=(0.1, None), equil=equil)
-background = maxwellian_1 + maxwellian_2
+background = maxwellians.GyroMaxwellian2D(n=(1.0, None), equil=equil)
 model.kinetic_ions.var.add_background(background)
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.TorusModesCos()
-maxwellian_1pt = maxwellians.GyroMaxwellian2D(n=(1.0, perturbation), equil=equil)
-init = maxwellian_1pt + maxwellian_2
+
+def n_init(x,y,z,r_minus,r_plus):
+    radial = (x**2 + y**2)**(1/2)
+
+    return 1.0 * ( (r_minus <= radial) & (radial < r_plus) )
+
+perturbation = perturbations.ModesCos(given_in_basis="physical_at_eta", amps=(1e-6,), ms=(4,), Ly=2*xp.pi)
+init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 
 if __name__ == "__main__":
