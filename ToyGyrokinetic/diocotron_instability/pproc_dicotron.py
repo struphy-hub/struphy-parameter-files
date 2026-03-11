@@ -126,3 +126,39 @@ fig.suptitle(r"Initial $\Delta f$ density distribution")
 
 plt.tight_layout()
 plt.savefig(os.path.join(save_path, "initialDensityDistribution.png"))
+
+
+# ------------------
+# Determine energy growth rate
+# ------------------
+
+# get scalar data (post processing not needed for scalar data)
+if MPI.COMM_WORLD.Get_rank() == 0:
+    pa_data = os.path.join(env.path_out, "data")
+    with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
+        time = f["time"]["value"][()]
+        en_phi = f["scalar"]["en_phi"][()]
+        en_particles = f["scalar"]["en_particles"][()]
+    
+    fig, ax = plt.subplots(1, figsize = (18, 12))
+
+    # plot
+    ax.plot(time, en_phi, label=r"$\phi$")
+    ax.plot(time, en_particles, label = "particles")
+
+    ax.yscale('log')
+    ax.legend()
+
+    ax.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
+    ax.xlabel("time")
+
+    ax.ylabel("Energy [a.u.]")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, "growth_rate.png"))
+
+
+# ------------------
+# Show evolution of mass density distribution
+# ------------------
+
