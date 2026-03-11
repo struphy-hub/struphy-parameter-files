@@ -89,10 +89,10 @@ derham_opts = DerhamOptions(
     p=(3,3,1), 
 
     # impose dirichlet boundary conditions at r_min and r_max
-    spl_kind=(False,True,True), 
+    spl_kind=(True,False,True), 
     dirichlet_bc=(
-        (True, True),
         (False, False),
+        (True, True),
         (False, False),
     ))
 
@@ -115,8 +115,8 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(Np=1000000, seed=1234)
-weights_params = WeightsParameters(control_variate=False)
+loading_params = LoadingParameters(Np=1_000_000, seed=1234)
+weights_params = WeightsParameters(control_variate=True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,
@@ -154,13 +154,16 @@ model.kinetic_ions.var.add_background(background)
 # piecewise function for initial condition of mass density
 r_minus, r_plus = 4.0, 5.0
 ms = 4
-def n_init(coordinate,r_minus=r_minus,r_plus=r_plus):
-    radial = (coordinate[:,0]**2 + coordinate[:,1]**2)**(1/2)
+def n_init(etas,r_minus=r_minus,r_plus=r_plus):
+
+    # transform logical coordinate to polar
+    a1, a2 = domain.params["a1"], domain.params["a2"]
+    radial = (a1 + (a2 - a1) * etas[:,0])
 
     return 1.0 * ( (r_minus <= radial) & (radial < r_plus) )
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(given_in_basis="physical_at_eta", amps=(1e-6,), ms=(ms,), Ly=2*xp.pi)
+perturbation = perturbations.ModesCos(given_in_basis="physical", amps=(0.5,), ms=(ms,), Ly=2*xp.pi)
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 
