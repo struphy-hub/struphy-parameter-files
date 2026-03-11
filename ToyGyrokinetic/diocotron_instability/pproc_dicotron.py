@@ -4,6 +4,7 @@ from struphy import PlottingData, PostProcessor
 import os
 import cunumpy as xp
 from matplotlib import pyplot as plt
+import h5py
 
 
 # ------------------
@@ -88,6 +89,7 @@ ax[1].set_title("Cylindrical coordinate")
 
 plt.tight_layout()
 plt.savefig(os.path.join(save_path, "initialElectricalPotential.png"))
+plt.close()
 
 
 # ------------------
@@ -126,6 +128,7 @@ fig.suptitle(r"Initial $\Delta f$ density distribution")
 
 plt.tight_layout()
 plt.savefig(os.path.join(save_path, "initialDensityDistribution.png"))
+plt.close()
 
 
 # ------------------
@@ -133,32 +136,66 @@ plt.savefig(os.path.join(save_path, "initialDensityDistribution.png"))
 # ------------------
 
 # get scalar data (post processing not needed for scalar data)
-if MPI.COMM_WORLD.Get_rank() == 0:
-    pa_data = os.path.join(env.path_out, "data")
-    with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
-        time = f["time"]["value"][()]
-        en_phi = f["scalar"]["en_phi"][()]
-        en_particles = f["scalar"]["en_particles"][()]
-    
-    fig, ax = plt.subplots(1, figsize = (18, 12))
+pa_data = os.path.join(env.path_out, "data")
+with h5py.File(os.path.join(pa_data, "data_proc0.hdf5"), "r") as f:
+    time = f["time"]["value"][()]
+    en_phi = f["scalar"]["en_phi"][()]
+    en_particles = f["scalar"]["en_particles"][()]
 
-    # plot
-    ax.plot(time, en_phi, label=r"$\phi$")
-    ax.plot(time, en_particles, label = "particles")
+fig, ax = plt.subplots(1, figsize = (18, 12))
 
-    ax.yscale('log')
-    ax.legend()
+# plot
+ax.plot(time, en_phi, label=r"$\phi$")
+ax.plot(time, en_particles, label = "particles")
 
-    ax.title(f"{dt=}, {algo=}, {Nel=}, {p=}, {ppc=}")
-    ax.xlabel("time")
+ax.set_yscale('log')
+ax.legend()
 
-    ax.ylabel("Energy [a.u.]")
+ax.set_title(f"{time_opts.dt=}, {time_opts.split_algo=}, {grid.Nel=}, {derham_opts.p=}, {loading_params.ppc=}")
+ax.set_xlabel("time")
+ax.set_ylabel("Energy [a.u.]")
 
-    plt.tight_layout()
-    plt.savefig(os.path.join(save_path, "growth_rate.png"))
+ax.set_ylim(0,1e4)
+
+plt.tight_layout()
+plt.savefig(os.path.join(save_path, "growth_rate.png"))
+plt.close()
 
 
 # ------------------
 # Show evolution of mass density distribution
 # ------------------
 
+nrows = 5
+ncols = 4
+ntime = len(pdata.f.kinetic_ions.e1_e2_density.f_binned) 
+time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
+
+def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "r", y_label = r"$\theta$"):
+
+    fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
+    for i in range(nrows):
+        for j in range(ncols):
+            ax_maxwellian = axs[i][j]
+            time_idx = time_indices[j + i*ncols]
+
+            #maxwellian distribution plot
+            color_mapped = getattr(
+                getattr(pdata.f.kinetic_ions, bin_name), quantity
+                )[time_idx].T
+            pcm = ax_maxwellian.pcolor(xs, ys, color_mapped)
+
+            ax_maxwellian.set_xlabel(x_label)
+            ax_maxwellian.set_ylabel(y_label)
+            ax_maxwellian.set_title(f"{quantity} at t = {pdata.t_grid[time_idx]:4.2e}")
+            fig.colorbar(pcm, ax = ax_maxwellian)
+
+            if "e1_e2" in bin_name:
+                ax_maxwellian.axvline(r_minus, ls = "--", color = "red")
+                ax_maxwellian.axvline(r_plus, ls = "--", color = "red")
+            
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, f"{bin_name}_{quantity}_phaseSpace"))
+    plt.close()
+
+plot_phaseSpace(bin_name="e1_e2_density", quantity="f_binned", xs=r, ys=theta)

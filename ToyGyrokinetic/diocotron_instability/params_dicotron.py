@@ -73,7 +73,7 @@ env = EnvironmentOptions(sim_folder="simdata")
 base_units = BaseUnits(kBT=1.0)
 
 # Time stepping
-time_opts = Time(dt=0.05, Tend=80.0, split_algo="LieTrotter")
+time_opts = Time(dt=0.05, Tend=10.0, split_algo="LieTrotter")
 
 # Geometry
 domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=40.0)
@@ -132,7 +132,7 @@ model.kinetic_ions.set_save_data(binning_plots=(binplot,))
 # ------------------
 
 model.propagators.gc_poisson.options = model.propagators.gc_poisson.Options()
-model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(phi=model.em_fields.phi, b_tilde=None)
+model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(phi=model.em_fields.phi, b_tilde = None)
 
 # ------------------
 # Initial conditions
