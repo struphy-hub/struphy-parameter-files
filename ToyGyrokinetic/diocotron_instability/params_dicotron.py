@@ -51,7 +51,7 @@ import cunumpy as xp
 # Instance of the model
 # ---------------------
 
-from struphy.models import ToyGyrokinetic
+from struphy.models import DriftKineticElectrostaticAdiabatic, ToyGyrokinetic
 model = ToyGyrokinetic()
 
 # List all species and set their physical properties (charge and mass number, etc.)
@@ -89,10 +89,10 @@ derham_opts = DerhamOptions(
     p=(3,3,1), 
 
     # impose dirichlet boundary conditions at r_min and r_max
-    spl_kind=(True,False,True), 
+    spl_kind=(False,True,True), 
     dirichlet_bc=(
-        (False, False),
         (True, True),
+        (False, False),
         (False, False),
     ))
 
@@ -166,7 +166,7 @@ eta_minus = (r_minus - domain.params["a1"])/(domain.params["a2"] - domain.params
 eta_plus = (r_plus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(given_in_basis="physical", amps=(1e-6,), ms=(ms,), Ly=2*xp.pi, perb_domain=((eta_minus, eta_plus), None, None))
+perturbation = perturbations.ModesCos(given_in_basis="physical", amps=(0.5,), ms=(ms,), Ly=2*xp.pi, perb_domain=((eta_minus, eta_plus), None, None))
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 

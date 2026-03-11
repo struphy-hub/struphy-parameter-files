@@ -99,7 +99,7 @@ plt.close()
 bin1 = pdata.f.kinetic_ions.e1_e2_density.grid_e1
 bin2 = pdata.f.kinetic_ions.e1_e2_density.grid_e2
 
-color_mapped = pdata.f.kinetic_ions.e1_e2_density.delta_f_binned[0].T
+color_mapped = pdata.f.kinetic_ions.e1_e2_density.f_binned[0].T
 
 fig, ax = plt.subplots(ncols = 2, figsize = (12,6))
 
@@ -124,7 +124,7 @@ ax[1].axvline(r_minus, ls = "--", color = "red", label = r"$r_-$")
 ax[1].axvline(r_plus, ls = "--", color = "red", label = r"$r_+$")
 ax[1].legend(loc = "upper right")
 
-fig.suptitle(r"Initial $\Delta f$ density distribution")
+fig.suptitle(r"Initial $f$ density distribution")
 
 plt.tight_layout()
 plt.savefig(os.path.join(save_path, "initialDensityDistribution.png"))
@@ -199,3 +199,39 @@ def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "r", y_label = r"$\the
     plt.close()
 
 plot_phaseSpace(bin_name="e1_e2_density", quantity="f_binned", xs=r, ys=theta)
+
+
+# ------------------
+# Show evolution of electric potential
+# ------------------
+nrows = 5
+ncols = 4
+ntime = len(pdata.f.kinetic_ions.e1_e2_density.f_binned) 
+time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
+
+r, theta, _ = logical_to_cylindrical(*pdata.grids_log)
+R, Theta = xp.meshgrid(r, theta)
+time_keys = pdata.t_grid
+
+fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14,10), sharex=True, sharey=True)
+
+for i in range(nrows):
+    for j in range(ncols):
+        ax_maxwellian = axs[i][j]
+        time_idx = time_indices[j + i*ncols]
+
+        phi = xp.array(
+            pdata.spline_values.em_fields.phi_log.data[time_keys[time_idx]][0][:,:,0]
+        ).T
+
+        pcm = ax_maxwellian.pcolormesh(R, Theta, phi, cmap="Purples")
+
+        ax_maxwellian.set_xlabel("r")
+        ax_maxwellian.set_ylabel(r"$\phi$")
+        ax_maxwellian.set_title(f"Electrical potential at t = {pdata.t_grid[time_idx]:4.2e}")
+
+        fig.colorbar(pcm, ax=ax_maxwellian)
+
+plt.tight_layout()
+plt.savefig(os.path.join(save_path, "potentialEvolution"))
+plt.close()
