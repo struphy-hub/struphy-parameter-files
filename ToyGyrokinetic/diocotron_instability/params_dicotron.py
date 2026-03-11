@@ -162,8 +162,11 @@ def n_init(etas,r_minus=r_minus,r_plus=r_plus):
 
     return 1.0 * ( (r_minus <= radial) & (radial < r_plus) )
 
+eta_minus = (r_minus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
+eta_plus = (r_plus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
+
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(given_in_basis="physical", amps=(0.5,), ms=(ms,), Ly=2*xp.pi)
+perturbation = perturbations.ModesCos(given_in_basis="physical", amps=(0.5,), ms=(ms,), Ly=2*xp.pi, perb_domain=((eta_minus, eta_plus), None, None))
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 

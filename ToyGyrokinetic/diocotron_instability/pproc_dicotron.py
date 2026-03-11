@@ -97,7 +97,7 @@ plt.savefig(os.path.join(save_path, "initialElectricalPotential.png"))
 bin1 = pdata.f.kinetic_ions.e1_e2_density.grid_e1
 bin2 = pdata.f.kinetic_ions.e1_e2_density.grid_e2
 
-color_mapped = pdata.f.kinetic_ions.e1_e2_density.f_binned[0].T
+color_mapped = pdata.f.kinetic_ions.e1_e2_density.delta_f_binned[0].T
 
 fig, ax = plt.subplots(ncols = 2, figsize = (12,6))
 
@@ -122,7 +122,7 @@ ax[1].axvline(r_minus, ls = "--", color = "red", label = r"$r_-$")
 ax[1].axvline(r_plus, ls = "--", color = "red", label = r"$r_+$")
 ax[1].legend(loc = "upper right")
 
-fig.suptitle(r"Initial $f$ density distribution")
+fig.suptitle(r"Initial $\Delta f$ density distribution")
 
 plt.tight_layout()
 plt.savefig(os.path.join(save_path, "initialDensityDistribution.png"))
