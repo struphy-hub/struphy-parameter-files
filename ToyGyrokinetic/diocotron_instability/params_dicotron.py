@@ -51,12 +51,12 @@ import cunumpy as xp
 # Instance of the model
 # ---------------------
 
-from struphy.models import DriftKineticElectrostaticAdiabatic, ToyGyrokinetic
-model = ToyGyrokinetic()
+from struphy.models import ToyDrift
+model = ToyDrift()
 
 # List all species and set their physical properties (charge and mass number, etc.)
 model.em_fields.set_species_properties()
-model.kinetic_ions.set_species_properties()
+model.kinetic_ions.set_species_properties(alpha=1.0,epsilon=-1.0)
 
 # List all variables and decide whether to save their data
 model.em_fields.phi.save_data = True
@@ -73,16 +73,16 @@ env = EnvironmentOptions(sim_folder="simdata")
 base_units = BaseUnits(kBT=1.0)
 
 # Time stepping
-time_opts = Time(dt=0.05, Tend=10.0, split_algo="LieTrotter")
+time_opts = Time(dt=0.05, Tend=0.5, split_algo="LieTrotter")
 
 # Geometry
-domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=40.0)
+domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
 
 # Fluid equilibrium (can be used as part of initial conditions)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid(Nel=(128,128,1))
+grid = grids.TensorProductGrid(Nel=(128,128,1), mpi_dims_mask=(True,True,False))
 
 # Derham options
 derham_opts = DerhamOptions(
@@ -115,16 +115,16 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc=20, seed=1234)
+loading_params = LoadingParameters(ppc = 20, seed=1234)
 weights_params = WeightsParameters(control_variate=True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,
                                boundary_params=boundary_params,
                                )
-model.kinetic_ions.set_sorting_boxes()
+model.kinetic_ions.set_sorting_boxes(boxes_per_dim=(16,16,1), do_sort=True)
 
-binplot = BinningPlot(slice='e1_e2', n_bins= (128,128), ranges= ((0.0, 1.0), (0.0,1.0)))
+binplot = BinningPlot(slice='e1_e2', n_bins= (64,64), ranges= ((0.0, 1.0), (0.0,1.0)))
 model.kinetic_ions.set_save_data(binning_plots=(binplot,))
 
 # ------------------
@@ -132,7 +132,7 @@ model.kinetic_ions.set_save_data(binning_plots=(binplot,))
 # ------------------
 
 model.propagators.gc_poisson.options = model.propagators.gc_poisson.Options()
-model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(phi=model.em_fields.phi, b_tilde = None)
+model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(phi=model.em_fields.phi, b_tilde=None)
 
 # ------------------
 # Initial conditions

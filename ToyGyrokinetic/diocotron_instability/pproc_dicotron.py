@@ -155,8 +155,6 @@ ax.set_title(f"{time_opts.dt=}, {time_opts.split_algo=}, {grid.Nel=}, {derham_op
 ax.set_xlabel("time")
 ax.set_ylabel("Energy [a.u.]")
 
-ax.set_ylim(0,1e4)
-
 plt.tight_layout()
 plt.savefig(os.path.join(save_path, "growth_rate.png"))
 plt.close()
@@ -227,7 +225,7 @@ for i in range(nrows):
         pcm = ax_maxwellian.pcolormesh(R, Theta, phi, cmap="Purples")
 
         ax_maxwellian.set_xlabel("r")
-        ax_maxwellian.set_ylabel(r"$\phi$")
+        ax_maxwellian.set_ylabel(r"$\theta$")
         ax_maxwellian.set_title(f"Electrical potential at t = {pdata.t_grid[time_idx]:4.2e}")
 
         fig.colorbar(pcm, ax=ax_maxwellian)
