@@ -237,3 +237,18 @@ for i in range(nrows):
 plt.tight_layout()
 plt.savefig(os.path.join(save_path, "potentialEvolution"))
 plt.close()
+
+
+# ------------------
+# Save copy of used parameter file as txt
+# ------------------
+
+# read content of parameter file
+with open("params_dicotron.py", "r") as py_file:
+    content = py_file.read()
+    py_file.close()
+
+# write content to text file
+with open(os.path.join(save_path, "param.txt"), "w") as txt_file:
+    txt_file.write(content)
+    txt_file.close()
