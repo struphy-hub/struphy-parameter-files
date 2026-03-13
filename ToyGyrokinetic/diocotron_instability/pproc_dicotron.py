@@ -96,39 +96,43 @@ plt.close()
 # Check initial mass density distribution
 # ------------------
 
-bin1 = pdata.f.kinetic_ions.e1_e2_density.grid_e1
-bin2 = pdata.f.kinetic_ions.e1_e2_density.grid_e2
+def plot_rho_dist(quantity:str = "f_binned"):
+    bin1 = pdata.f.kinetic_ions.e1_e2_density.grid_e1
+    bin2 = pdata.f.kinetic_ions.e1_e2_density.grid_e2
 
-color_mapped = pdata.f.kinetic_ions.e1_e2_density.f_binned[0].T
+    color_mapped = getattr(pdata.f.kinetic_ions.e1_e2_density, quantity)[0].T
 
-fig, ax = plt.subplots(ncols = 2, figsize = (12,6))
+    fig, ax = plt.subplots(ncols = 2, figsize = (12,6))
 
-# logical space
-pcm = ax[0].pcolor(bin1,bin2,color_mapped)
-fig.colorbar(pcm, ax=ax[0])
-ax[0].set_xlabel(r"$\eta_1$")
-ax[0].set_ylabel(r"$\eta_2$")
-ax[0].set_title("logical space");
+    # logical space
+    pcm = ax[0].pcolor(bin1,bin2,color_mapped)
+    fig.colorbar(pcm, ax=ax[0])
+    ax[0].set_xlabel(r"$\eta_1$")
+    ax[0].set_ylabel(r"$\eta_2$")
+    ax[0].set_title("logical space");
 
-# cylindrical coordinate
-r, theta, _ = logical_to_cylindrical(bin1, bin2, 0)
+    # cylindrical coordinate
+    r, theta, _ = logical_to_cylindrical(bin1, bin2, 0)
 
-pcm = ax[1].pcolor(r,theta,color_mapped)
-ax[1].set_xlabel(r"$r$")
-ax[1].set_ylabel(r"$\theta$")
-ax[1].set_title("cylindrical coordinate")
+    pcm = ax[1].pcolor(r,theta,color_mapped)
+    ax[1].set_xlabel(r"$r$")
+    ax[1].set_ylabel(r"$\theta$")
+    ax[1].set_title("cylindrical coordinate")
 
-fig.colorbar(pcm, ax=ax[1])
+    fig.colorbar(pcm, ax=ax[1])
 
-ax[1].axvline(r_minus, ls = "--", color = "red", label = r"$r_-$")
-ax[1].axvline(r_plus, ls = "--", color = "red", label = r"$r_+$")
-ax[1].legend(loc = "upper right")
+    ax[1].axvline(r_minus, ls = "--", color = "red", label = r"$r_-$")
+    ax[1].axvline(r_plus, ls = "--", color = "red", label = r"$r_+$")
+    ax[1].legend(loc = "upper right")
 
-fig.suptitle(r"Initial $f$ density distribution")
+    fig.suptitle(f"Initial {quantity} density distribution")
 
-plt.tight_layout()
-plt.savefig(os.path.join(save_path, "initialDensityDistribution.png"))
-plt.close()
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, f"initialDensityDistribution_{quantity}.png"))
+    plt.close()
+
+plot_rho_dist(quantity="f_binned")
+plot_rho_dist(quantity="delta_f_binned")
 
 
 # ------------------
