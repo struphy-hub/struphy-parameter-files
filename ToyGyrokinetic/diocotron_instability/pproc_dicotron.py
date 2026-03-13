@@ -240,6 +240,35 @@ plt.close()
 
 
 # ------------------
+# Check initial magnetic field
+# ------------------
+
+t0 = pdata.t_grid[0]
+B_field = pdata.spline_values.em_fields.b_field_log.data[t0]
+
+nrows, ncols = 3, 3
+fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12,12), sharex=True, sharey=True)
+
+for i in range(nrows):
+
+    # retreive B along axis i
+    B_axis = B_field[i]
+    for j in range(ncols):
+        # determine slicing of B with j
+        idx = [0,0,0]
+        idx[j] = slice(None)
+
+        axs[i,j].plot(pdata.grids_log[j], B_axis[tuple(idx)])
+
+        axs[i,j].set_xlabel(rf"$\eta${j}")
+        axs[i,j].set_ylabel(rf"$B${i}")
+
+plt.tight_layout()
+plt.savefig(os.path.join(save_path, "initB"))
+plt.close()
+
+
+# ------------------
 # Save copy of used parameter file as txt
 # ------------------
 
