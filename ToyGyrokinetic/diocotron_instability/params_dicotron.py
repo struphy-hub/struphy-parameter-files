@@ -56,7 +56,7 @@ model = ToyDrift()
 
 # List all species and set their physical properties (charge and mass number, etc.)
 model.em_fields.set_species_properties()
-model.kinetic_ions.set_species_properties()
+model.kinetic_ions.set_species_properties(alpha=1.0,epsilon=1.0)
 
 # List all variables and decide whether to save their data
 model.em_fields.phi.save_data = True
@@ -73,7 +73,7 @@ env = EnvironmentOptions(sim_folder="simdata")
 base_units = BaseUnits(kBT=1.0)
 
 # Time stepping
-time_opts = Time(dt=0.05, Tend=0.5, split_algo="LieTrotter")
+time_opts = Time(dt=0.05, Tend=0.05, split_algo="LieTrotter")
 
 # Geometry
 domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
@@ -82,7 +82,7 @@ domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid(Nel=(128,128,1), mpi_dims_mask=(True,True,False))
+grid = grids.TensorProductGrid(Nel=(32,128,1), mpi_dims_mask=(True,True,False))
 
 # Derham options
 derham_opts = DerhamOptions(
@@ -115,7 +115,7 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc = 20, seed=1234)
+loading_params = LoadingParameters(ppc = 500, seed=1234)
 weights_params = WeightsParameters(control_variate=True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -147,10 +147,6 @@ model.em_fields.phi.add_background(FieldsBackground())
 # For kinetic species, if add_initial_condition() is not called, the background is taken as the kinetic initial condition.
 # For kinetic species the perturbations are added to the moments of the distribution function (defined as tuples).
 
-# Background for kinetic species
-background = maxwellians.GyroMaxwellian2D(n=(1.0, None), equil=equil)
-model.kinetic_ions.var.add_background(background)
-
 # piecewise function for initial condition of mass density
 r_minus, r_plus = 4.0, 5.0
 ms = 4
@@ -162,11 +158,16 @@ def n_init(etas,r_minus=r_minus,r_plus=r_plus):
 
     return 1.0 * ( (r_minus <= radial) & (radial < r_plus) )
 
+# Background for kinetic species
+background = maxwellians.GyroMaxwellian2D(n=(1.0, None), equil=equil)
+model.kinetic_ions.var.add_background(background)
+
+
 eta_minus = (r_minus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
 eta_plus = (r_plus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(given_in_basis="physical", amps=(0.5,), ms=(ms,), Ly=2*xp.pi, perb_domain=((eta_minus, eta_plus), None, None))
+perturbation = perturbations.ModesCos(given_in_basis="0", amps=(0.5,), ms=(ms,), perb_domain=((eta_minus, eta_plus), None, None))
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 
