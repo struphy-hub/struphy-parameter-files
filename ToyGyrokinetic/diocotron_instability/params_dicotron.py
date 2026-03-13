@@ -56,7 +56,7 @@ model = ToyDrift()
 
 # List all species and set their physical properties (charge and mass number, etc.)
 model.em_fields.set_species_properties()
-model.kinetic_ions.set_species_properties(alpha=1.0,epsilon=-1.0)
+model.kinetic_ions.set_species_properties()
 
 # List all variables and decide whether to save their data
 model.em_fields.phi.save_data = True
@@ -124,7 +124,7 @@ model.kinetic_ions.set_markers(loading_params=loading_params,
                                )
 model.kinetic_ions.set_sorting_boxes(boxes_per_dim=(16,16,1), do_sort=True)
 
-binplot = BinningPlot(slice='e1_e2', n_bins= (64,64), ranges= ((0.0, 1.0), (0.0,1.0)))
+binplot = BinningPlot(slice='e1_e2', n_bins= (128,128), ranges= ((0.0, 1.0), (0.0,1.0)))
 model.kinetic_ions.set_save_data(binning_plots=(binplot,))
 
 # ------------------
