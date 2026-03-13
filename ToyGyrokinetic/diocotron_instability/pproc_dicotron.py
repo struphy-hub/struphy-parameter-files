@@ -13,7 +13,7 @@ import h5py
 sim_path = os.path.join(os.getcwd(), "simdata")
 
 pp = PostProcessor(path_out=sim_path)
-pp.process()
+pp.process(physical=True)
 
 pdata = PlottingData(path_out=sim_path)
 pdata.load()
@@ -41,7 +41,6 @@ def logical_to_cylindrical(eta1,eta2,eta3):
     return r, theta, z
 
 r, theta, z = logical_to_cylindrical(*pdata.grids_log)
-
 
 # ------------------
 # Check simulation domain
@@ -121,8 +120,8 @@ def plot_rho_dist(quantity:str = "f_binned"):
 
     fig.colorbar(pcm, ax=ax[1])
 
-    ax[1].axvline(r_minus, ls = "--", color = "red", label = r"$r_-$")
-    ax[1].axvline(r_plus, ls = "--", color = "red", label = r"$r_+$")
+    # ax[1].axvline(r_minus, ls = "--", color = "red", label = r"$r_-$")
+    # ax[1].axvline(r_plus, ls = "--", color = "red", label = r"$r_+$")
     ax[1].legend(loc = "upper right")
 
     fig.suptitle(f"Initial {quantity} density distribution")
@@ -136,7 +135,7 @@ plot_rho_dist(quantity="delta_f_binned")
 
 
 # ------------------
-# Determine energy growth rate
+# Determine electrical potentail growth rate
 # ------------------
 
 # get scalar data (post processing not needed for scalar data)
@@ -192,14 +191,16 @@ def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "r", y_label = r"$\the
             ax_maxwellian.set_title(f"{quantity} at t = {pdata.t_grid[time_idx]:4.2e}")
             fig.colorbar(pcm, ax = ax_maxwellian)
 
-            if "e1_e2" in bin_name:
-                ax_maxwellian.axvline(r_minus, ls = "--", color = "red")
-                ax_maxwellian.axvline(r_plus, ls = "--", color = "red")
+            # if "e1_e2" in bin_name:
+            #     ax_maxwellian.axvline(r_minus, ls = "--", color = "red")
+            #     ax_maxwellian.axvline(r_plus, ls = "--", color = "red")
             
     plt.tight_layout()
     plt.savefig(os.path.join(save_path, f"{bin_name}_{quantity}_phaseSpace"))
     plt.close()
 
+r  = pdata.f.kinetic_ions.e1_e2_density.grid_e1
+theta = pdata.f.kinetic_ions.e1_e2_density.grid_e2
 plot_phaseSpace(bin_name="e1_e2_density", quantity="f_binned", xs=r, ys=theta)
 
 
@@ -222,14 +223,12 @@ for i in range(nrows):
         ax_maxwellian = axs[i][j]
         time_idx = time_indices[j + i*ncols]
 
-        phi = xp.array(
-            pdata.spline_values.em_fields.phi_log.data[time_keys[time_idx]][0][:,:,0]
-        ).T
+        phi = pdata.spline_values.em_fields.phi_phy.data[time_keys[time_idx]][0][:,:,0]
 
-        pcm = ax_maxwellian.pcolormesh(R, Theta, phi, cmap="Purples")
+        pcm = ax_maxwellian.pcolormesh(pdata.grids_phy[0][:,:,0], pdata.grids_phy[1][:,:,0], phi, cmap="Purples")
 
-        ax_maxwellian.set_xlabel("r")
-        ax_maxwellian.set_ylabel(r"$\theta$")
+        ax_maxwellian.set_xlabel("x")
+        ax_maxwellian.set_ylabel(r"y")
         ax_maxwellian.set_title(f"Electrical potential at t = {pdata.t_grid[time_idx]:4.2e}")
 
         fig.colorbar(pcm, ax=ax_maxwellian)
