@@ -73,7 +73,7 @@ env = EnvironmentOptions(sim_folder="simdata")
 base_units = BaseUnits(kBT=1.0)
 
 # Time stepping
-time_opts = Time(dt=0.05, Tend=0.05, split_algo="LieTrotter")
+time_opts = Time(dt=0.05, Tend=0.5, split_algo="LieTrotter")
 
 # Geometry
 domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
@@ -82,7 +82,7 @@ domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid(Nel=(32,128,1), mpi_dims_mask=(True,True,False))
+grid = grids.TensorProductGrid(Nel=(32,32,1), mpi_dims_mask=(True,True,False))
 
 # Derham options
 derham_opts = DerhamOptions(
@@ -115,7 +115,7 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc = 500, seed=1234)
+loading_params = LoadingParameters(ppc = 500, set_zero_velocity=(False, False, True), seed=1234)
 weights_params = WeightsParameters(control_variate=True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -124,8 +124,15 @@ model.kinetic_ions.set_markers(loading_params=loading_params,
                                )
 model.kinetic_ions.set_sorting_boxes(boxes_per_dim=(16,16,1), do_sort=True)
 
-binplot = BinningPlot(slice='e1_e2', n_bins= (128,128), ranges= ((0.0, 1.0), (0.0,1.0)))
-model.kinetic_ions.set_save_data(binning_plots=(binplot,))
+eta_bin = BinningPlot(slice='e1_e2', n_bins= (128,128), ranges= ((0.0, 1.0), (0.0,1.0)))
+e_v_bin = (
+    BinningPlot(slice="e1_v1", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
+    BinningPlot(slice="e1_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
+    BinningPlot(slice="e2_v1", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
+    BinningPlot(slice="e2_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
+)
+v_v_bin = BinningPlot(slice="v1_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) ))
+model.kinetic_ions.set_save_data(binning_plots=(eta_bin, v_v_bin, *e_v_bin))
 
 # ------------------
 # Propagator options
@@ -167,7 +174,7 @@ eta_minus = (r_minus - domain.params["a1"])/(domain.params["a2"] - domain.params
 eta_plus = (r_plus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(given_in_basis="0", amps=(0.5,), ms=(ms,), perb_domain=((eta_minus, eta_plus), None, None))
+perturbation = perturbations.ModesCos(amps=(0.5,), ms=(ms,), perb_domain=((eta_minus,eta_plus), None, None))
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 
