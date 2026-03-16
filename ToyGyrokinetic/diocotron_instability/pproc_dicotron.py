@@ -48,6 +48,7 @@ r, theta, z = logical_to_cylindrical(*pdata.grids_log)
 
 domain.show(save_dir=os.path.join(save_path,"domain.png"))
 
+
 # ------------------
 # Determine electrical potentail growth rate
 # ------------------
@@ -81,12 +82,18 @@ plt.close()
 # Show evolution of mass density distribution
 # ------------------
 
-nrows = 5
-ncols = 4
+# convert binning to physical coordinate
+e1_bin = pdata.f.kinetic_ions.e1_e2_density.grid_e1
+e2_bin = pdata.f.kinetic_ions.e1_e2_density.grid_e2
+
+phy_bin = domain(e1_bin, e2_bin, 0, squeeze_out=True)
+
+nrows = 2
+ncols = 2
 ntime = len(pdata.f.kinetic_ions.e1_e2_density.f_binned) 
 time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
-def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "r", y_label = r"$\theta$"):
+def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "x", y_label = "y"):
 
     fig, axs = plt.subplots(nrows = nrows, ncols = ncols, figsize = (14,10), sharex=True, sharey=True)
     for i in range(nrows):
@@ -97,37 +104,29 @@ def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "r", y_label = r"$\the
             #maxwellian distribution plot
             color_mapped = getattr(
                 getattr(pdata.f.kinetic_ions, bin_name), quantity
-                )[time_idx].T
-            pcm = ax_maxwellian.pcolor(xs, ys, color_mapped)
+                )[time_idx]
+            pcm = ax_maxwellian.pcolor(xs, ys, color_mapped, cmap="gist_heat")
 
             ax_maxwellian.set_xlabel(x_label)
             ax_maxwellian.set_ylabel(y_label)
             ax_maxwellian.set_title(f"{quantity} at t = {pdata.t_grid[time_idx]:4.2e}")
             fig.colorbar(pcm, ax = ax_maxwellian)
-
-            # if "e1_e2" in bin_name:
-            #     ax_maxwellian.axvline(r_minus, ls = "--", color = "red")
-            #     ax_maxwellian.axvline(r_plus, ls = "--", color = "red")
             
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(os.path.join(save_path, f"{bin_name}_{quantity}_phaseSpace"))
     plt.close()
-
-r  = pdata.f.kinetic_ions.e1_e2_density.grid_e1
-theta = pdata.f.kinetic_ions.e1_e2_density.grid_e2
-plot_phaseSpace(bin_name="e1_e2_density", quantity="f_binned", xs=r, ys=theta)
-
+    
+plot_phaseSpace(bin_name="e1_e2_density", quantity="f_binned", xs=phy_bin[0], ys=phy_bin[1])
+plot_phaseSpace(bin_name="e1_e2_density", quantity="delta_f_binned", xs=phy_bin[0], ys=phy_bin[1])
 
 # ------------------
 # Show evolution of electric potential
 # ------------------
-nrows = 5
-ncols = 4
+nrows = 2
+ncols = 2
 ntime = len(pdata.f.kinetic_ions.e1_e2_density.f_binned) 
 time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
-r, theta, _ = logical_to_cylindrical(*pdata.grids_log)
-R, Theta = xp.meshgrid(r, theta)
 time_keys = pdata.t_grid
 
 fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14,10), sharex=True, sharey=True)
