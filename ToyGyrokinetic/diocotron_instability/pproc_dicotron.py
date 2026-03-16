@@ -61,7 +61,7 @@ fig, ax = plt.subplots(ncols = 2, figsize = (12,6))
 fig.suptitle(rf"$\phi_0$ at $\eta_3$ = {pdata.grids_log[2][0]}")
 
 # determine boundary condition in logical coordinate
-init_phi = xp.array(pdata.spline_values.em_fields.phi_log.data[0.0]).T
+init_phi = xp.array(pdata.spline_values.em_fields.phi_log.data[0.0])
 
 eta1 = pdata.grids_log[0]
 eta2 = pdata.grids_log[1]
