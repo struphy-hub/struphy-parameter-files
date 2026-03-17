@@ -132,7 +132,9 @@ e_v_bin = (
     BinningPlot(slice="e2_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
 )
 v_v_bin = BinningPlot(slice="v1_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) ))
-model.kinetic_ions.set_save_data(binning_plots=(eta_bin, v_v_bin, *e_v_bin))
+
+all_bins = (eta_bin, *e_v_bin, v_v_bin)
+model.kinetic_ions.set_save_data(binning_plots=all_bins)
 
 # ------------------
 # Propagator options
