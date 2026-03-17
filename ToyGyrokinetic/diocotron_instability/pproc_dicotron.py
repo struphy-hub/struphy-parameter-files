@@ -81,7 +81,7 @@ plt.close()
 # ------------------
 # Show evolution of mass density distribution
 # ------------------
-os.mkdir(os.path.join(os.getcwd(), save_path, "phaseSpace"))
+os.makedirs(os.path.join(os.getcwd(), save_path, "phaseSpace"), exist_ok=True)
 
 nrows = 2
 ncols = 2
@@ -161,6 +161,44 @@ for curr_bin, X, Y, x_label, y_label in zip((*e_v_bin, v_v_bin), xs, ys, x_label
     plot_phaseSpace(bin_name=bin_name, quantity="f_binned", xs=X, ys=Y, x_label=x_label, y_label=y_label)
     plot_phaseSpace(bin_name=bin_name, quantity="delta_f_binned", xs=X, ys=Y, x_label=x_label, y_label=y_label)
 
+
+# ------------------
+# Current density evolution
+# ------------------
+
+current_density_path = os.path.join(save_path, "current_density")
+os.makedirs(current_density_path, exist_ok=True)
+
+def current_1D(time_idx:int):
+    nrows, ncols = 2, 3
+    fig, ax = plt.subplots(nrows = nrows, ncols = ncols, figsize = (9,9),sharey = True, sharex = True)
+
+    for i in range(nrows):
+        for j in range(ncols):
+
+            e_bins = getattr(pdata.f.kinetic_ions, f"e{j+1}_current_{i+1}").f_binned[time_idx]
+            es = xp.linspace(0,1,e_bins.shape[0])
+
+            ax[i,j].axhline(color = "red", alpha = 0.5)
+            ax[i,j].plot(es, e_bins)
+
+        ax[i,0].set_ylim(-0.25,0.25)
+
+    for i in range(nrows): ax[i,0].set_ylabel(fr"$j_{i+1}$")
+    for j in range(ncols): ax[1,j].set_xlabel(fr"$\eta_{ {j+1} }$")
+
+    time = pdata.t_grid[time_idx]
+    fig.suptitle(f"Current density at time {time:.2f}")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(
+        current_density_path,
+        f"{time:.2f}".replace(".", "_") + ".png"
+    ))
+    plt.close()
+
+for t in time_indices:
+    current_1D(t)
 
 # ------------------
 # Show evolution of electric potential
