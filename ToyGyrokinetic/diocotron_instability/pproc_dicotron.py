@@ -19,7 +19,8 @@ pdata = PlottingData(path_out=sim_path)
 pdata.load()
 
 # path to save plots
-save_path = os.path.join(os.getcwd(), "images")
+save_path = os.path.join(os.getcwd(), "images", "sim")
+os.makedirs(save_path)
 
 
 # ------------------
@@ -122,46 +123,6 @@ phy_bin = domain(e1_bin, e2_bin, 0, squeeze_out=True) # convert eta to physical 
 plot_phaseSpace(bin_name="e1_e2_density", quantity="f_binned", xs=phy_bin[0], ys=phy_bin[1], in_physical=True)
 plot_phaseSpace(bin_name="e1_e2_density", quantity="delta_f_binned", xs=phy_bin[0], ys=phy_bin[1], in_physical=True)
 
-# density plot in logical and velocity space
-xs = [
-    pdata.f.kinetic_ions.e1_v1_density.grid_e1,
-    pdata.f.kinetic_ions.e1_v2_density.grid_e1,
-    pdata.f.kinetic_ions.e2_v1_density.grid_e2,
-    pdata.f.kinetic_ions.e2_v2_density.grid_e2,
-    pdata.f.kinetic_ions.v1_v2_density.grid_v1,
-]
-
-ys = [
-    pdata.f.kinetic_ions.e1_v1_density.grid_v1,
-    pdata.f.kinetic_ions.e1_v2_density.grid_v2,
-    pdata.f.kinetic_ions.e2_v1_density.grid_v1,
-    pdata.f.kinetic_ions.e2_v2_density.grid_v2,
-    pdata.f.kinetic_ions.v1_v2_density.grid_v2,
-]
-
-x_labels = ["e1", "e1", "e2", "e2", "v1"]
-y_labels = ["v1", "v2", "v1", "v2", "v2"]
-
-for curr_bin, X, Y, x_label, y_label in zip((*e_v_bin, v_v_bin), xs, ys, x_labels, y_labels):
-    # extract slice and binning quantity for data retrieval
-    bin_slice, bin_quantity = curr_bin.slice, curr_bin.output_quantity
-
-    # extract grid names from slice
-    grid1, grid2 = bin_slice.split("_")
-
-    bin_name = bin_slice + "_" + bin_quantity
-    bin1 = getattr(getattr(pdata.f.kinetic_ions, bin_name), f"grid_{grid1}")
-    bin2 = getattr(getattr(pdata.f.kinetic_ions, bin_name), f"grid_{grid2}")
-    
-    # convert bin to meshgrid
-    if len(X.shape) == 1 and len(Y.shape) == 1:
-        X, Y = xp.meshgrid(X,Y)
-
-    # plot distribution
-    plot_phaseSpace(bin_name=bin_name, quantity="f_binned", xs=X, ys=Y, x_label=x_label, y_label=y_label)
-    plot_phaseSpace(bin_name=bin_name, quantity="delta_f_binned", xs=X, ys=Y, x_label=x_label, y_label=y_label)
-
-
 # ------------------
 # Current density evolution
 # ------------------
@@ -219,7 +180,7 @@ for i in range(nrows):
 
         phi = pdata.spline_values.em_fields.phi_phy.data[time_keys[time_idx]][0][:,:,0]
 
-        pcm = ax_maxwellian.pcolormesh(pdata.grids_phy[0][:,:,0], pdata.grids_phy[1][:,:,0], phi, cmap="Purples")
+        pcm = ax_maxwellian.pcolormesh(pdata.grids_phy[0][:,:,0], pdata.grids_phy[1][:,:,0], phi)
 
         ax_maxwellian.set_xlabel("x")
         ax_maxwellian.set_ylabel(r"y")
