@@ -20,7 +20,7 @@ pdata.load()
 
 # path to save plots
 save_path = os.path.join(os.getcwd(), "images", "sim")
-os.makedirs(save_path)
+os.makedirs(save_path, exist_ok=True)
 
 
 # ------------------
@@ -82,7 +82,6 @@ plt.close()
 # ------------------
 # Show evolution of mass density distribution
 # ------------------
-os.makedirs(os.path.join(os.getcwd(), save_path, "phaseSpace"), exist_ok=True)
 
 nrows = 2
 ncols = 2
@@ -112,7 +111,7 @@ def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "x", y_label = "y", in
             fig.colorbar(pcm, ax = ax_maxwellian)
             
     # plt.tight_layout()
-    plt.savefig(os.path.join(save_path, "phaseSpace", f"{bin_name}_{quantity}_phaseSpace"))
+    plt.savefig(os.path.join(save_path, f"{bin_name}_{quantity}_phaseSpace"))
     plt.close()
 
 # e1_e2_density binplot in physical coordinate
@@ -122,44 +121,6 @@ e2_bin = pdata.f.kinetic_ions.e1_e2_density.grid_e2
 phy_bin = domain(e1_bin, e2_bin, 0, squeeze_out=True) # convert eta to physical coordinate
 plot_phaseSpace(bin_name="e1_e2_density", quantity="f_binned", xs=phy_bin[0], ys=phy_bin[1], in_physical=True)
 plot_phaseSpace(bin_name="e1_e2_density", quantity="delta_f_binned", xs=phy_bin[0], ys=phy_bin[1], in_physical=True)
-
-# ------------------
-# Current density evolution
-# ------------------
-
-current_density_path = os.path.join(save_path, "current_density")
-os.makedirs(current_density_path, exist_ok=True)
-
-def current_1D(time_idx:int):
-    nrows, ncols = 2, 3
-    fig, ax = plt.subplots(nrows = nrows, ncols = ncols, figsize = (9,9),sharey = True, sharex = True)
-
-    for i in range(nrows):
-        for j in range(ncols):
-
-            e_bins = getattr(pdata.f.kinetic_ions, f"e{j+1}_current_{i+1}").f_binned[time_idx]
-            es = xp.linspace(0,1,e_bins.shape[0])
-
-            ax[i,j].axhline(color = "red", alpha = 0.5)
-            ax[i,j].plot(es, e_bins)
-
-        ax[i,0].set_ylim(-0.25,0.25)
-
-    for i in range(nrows): ax[i,0].set_ylabel(fr"$j_{i+1}$")
-    for j in range(ncols): ax[1,j].set_xlabel(fr"$\eta_{ {j+1} }$")
-
-    time = pdata.t_grid[time_idx]
-    fig.suptitle(f"Current density at time {time:.2f}")
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(
-        current_density_path,
-        f"{time:.2f}".replace(".", "_") + ".png"
-    ))
-    plt.close()
-
-for t in time_indices:
-    current_1D(t)
 
 # ------------------
 # Show evolution of electric potential
