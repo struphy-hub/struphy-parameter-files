@@ -1,4 +1,4 @@
-from params_dicotron import *
+from params_diocotron import *
 from struphy import PlottingData, PostProcessor
 
 import os
@@ -158,7 +158,7 @@ plt.close()
 # ------------------
 
 # read content of parameter file
-with open("params_dicotron.py", "r") as py_file:
+with open("params_diocotron.py", "r") as py_file:
     content = py_file.read()
     py_file.close()
 
