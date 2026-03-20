@@ -82,7 +82,7 @@ domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid(Nel=(64,64,1), mpi_dims_mask=(True,True,False))
+grid = grids.TensorProductGrid(Nel=(32,64,1), mpi_dims_mask=(True,True,False))
 
 # Derham options
 derham_opts = DerhamOptions(
@@ -126,20 +126,7 @@ model.kinetic_ions.set_sorting_boxes(boxes_per_dim=(16,16,1), do_sort=True)
 
 # density binning
 eta_bin = BinningPlot(slice='e1_e2', n_bins= (128,128), ranges= ((0.0, 1.0), (0.0,1.0)))
-e_v_bin = (
-    BinningPlot(slice="e1_v1", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
-    BinningPlot(slice="e1_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
-    BinningPlot(slice="e2_v1", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
-    BinningPlot(slice="e2_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) )),
-)
-v_v_bin = BinningPlot(slice="v1_v2", n_bins=(128,128), ranges=( (0.0,1.0) ,(-1.0,1.0) ))
-
-# current density binning
-binplot_current = tuple(
-    [BinningPlot(slice=f"e{i}", n_bins= 128, ranges= (0.,1.), output_quantity=f"current_{j}") for j in range(1,3) for i in range(1,4)] 
-    )
-
-model.kinetic_ions.set_save_data(binning_plots=(eta_bin, *e_v_bin, v_v_bin, *binplot_current))
+model.kinetic_ions.set_save_data(binning_plots=(eta_bin, ))
 
 # ------------------
 # Propagator options
