@@ -10,7 +10,7 @@ from struphy import PlottingData, PostProcessor
 from struphy.physics.physics import Units
 
 # post process raw data
-sim_name = params.sim_folder
+sim_name = params.env.sim_folder
 sim_path = os.path.join(os.getcwd(), sim_name)
 save_path = os.path.join(os.getcwd(), "result", "noPerb", "controlVariate"+sim_name[-1])
 
