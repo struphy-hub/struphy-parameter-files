@@ -56,7 +56,7 @@ model = ToyDrift()
 
 # List all species and set their physical properties (charge and mass number, etc.)
 model.em_fields.set_species_properties()
-model.kinetic_ions.set_species_properties(alpha=1.0,epsilon=1.0)
+model.kinetic_ions.set_species_properties(alpha=1.0, epsilon=1.0)
 
 # List all variables and decide whether to save their data
 model.em_fields.phi.save_data = True
@@ -73,7 +73,7 @@ env = EnvironmentOptions(sim_folder="simdata")
 base_units = BaseUnits(kBT=1.0)
 
 # Time stepping
-time_opts = Time(dt=0.05, Tend=0.5, split_algo="LieTrotter")
+time_opts = Time(dt=0.05, Tend=60.0, split_algo="LieTrotter")
 
 # Geometry
 domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
@@ -82,7 +82,7 @@ domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid(Nel=(32,32,1), mpi_dims_mask=(True,True,False))
+grid = grids.TensorProductGrid(Nel=(64,64,1), mpi_dims_mask=(True,True,False))
 
 # Derham options
 derham_opts = DerhamOptions(
@@ -115,7 +115,7 @@ sim = Simulation(
 # Particle parameters
 # -------------------
 
-loading_params = LoadingParameters(ppc = 500, set_zero_velocity=(False, False, True), seed=1234)
+loading_params = LoadingParameters(ppc = 500, seed=1234)
 weights_params = WeightsParameters(control_variate=True)
 boundary_params = BoundaryParameters()
 model.kinetic_ions.set_markers(loading_params=loading_params,
@@ -146,7 +146,7 @@ model.kinetic_ions.set_save_data(binning_plots=(eta_bin, *e_v_bin, v_v_bin, *bin
 # ------------------
 
 model.propagators.gc_poisson.options = model.propagators.gc_poisson.Options()
-model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(phi=model.em_fields.phi)
+model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(phi=model.em_fields.phi, evaluate_e_field=True)
 
 # ------------------
 # Initial conditions
@@ -154,14 +154,11 @@ model.propagators.push_gc_bxe.options = model.propagators.push_gc_bxe.Options(ph
 # Initial conditions are the sum of the background(s) and the perturbation(s).
 # If backgrounds or perturbations are not specified, they are assumed to be zero.
 
-# Background for (some) FEEC variables
-model.em_fields.phi.add_background(FieldsBackground())
-
 # For kinetic species the background is mandatory.
 # For kinetic species, if add_initial_condition() is not called, the background is taken as the kinetic initial condition.
 # For kinetic species the perturbations are added to the moments of the distribution function (defined as tuples).
 
-# piecewise function for initial condition of mass density
+# piecewise function for initial condition of density
 r_minus, r_plus = 4.0, 5.0
 ms = 4
 def n_init(etas,r_minus=r_minus,r_plus=r_plus):
@@ -181,7 +178,7 @@ eta_minus = (r_minus - domain.params["a1"])/(domain.params["a2"] - domain.params
 eta_plus = (r_plus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(amps=(0.5,), ms=(ms,), perb_domain=((eta_minus,eta_plus), None, None))
+perturbation = perturbations.ModesCos(amps=(1e-6,), ms=(ms,), perb_domain=((eta_minus,eta_plus), None, None))
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 

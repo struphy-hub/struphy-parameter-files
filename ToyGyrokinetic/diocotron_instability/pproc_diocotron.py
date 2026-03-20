@@ -83,8 +83,8 @@ plt.close()
 # Show evolution of mass density distribution
 # ------------------
 
-nrows = 2
-ncols = 2
+nrows = 4
+ncols = 4
 ntime = len(pdata.f.kinetic_ions.e1_e2_density.f_binned) 
 time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
@@ -125,8 +125,8 @@ plot_phaseSpace(bin_name="e1_e2_density", quantity="delta_f_binned", xs=phy_bin[
 # ------------------
 # Show evolution of electric potential
 # ------------------
-nrows = 2
-ncols = 2
+nrows = 4
+ncols = 4
 ntime = len(pdata.f.kinetic_ions.e1_e2_density.f_binned) 
 time_indices = [int( i/(nrows*ncols-1) * (ntime - 1) ) for i in range(nrows*ncols)]
 
