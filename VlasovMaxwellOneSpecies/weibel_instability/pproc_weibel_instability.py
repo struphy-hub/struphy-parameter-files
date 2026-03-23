@@ -9,6 +9,7 @@ from feectools.ddm.mpi import mpi as MPI
 from struphy import PlottingData, PostProcessor
 from struphy.physics.physics import Units
 
+
 def main():
     # post process raw data
     sim_name = params.env.sim_folder
