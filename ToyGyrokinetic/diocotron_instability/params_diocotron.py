@@ -82,7 +82,7 @@ domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid(Nel=(32,64,1), mpi_dims_mask=(True,True,False))
+grid = grids.TensorProductGrid(Nel=(64,64,1), mpi_dims_mask=(True,True,False))
 
 # Derham options
 derham_opts = DerhamOptions(
@@ -122,10 +122,10 @@ model.kinetic_ions.set_markers(loading_params=loading_params,
                                weights_params=weights_params,
                                boundary_params=boundary_params,
                                )
-model.kinetic_ions.set_sorting_boxes(boxes_per_dim=(16,16,1), do_sort=True)
+model.kinetic_ions.set_sorting_boxes(boxes_per_dim=(32,32,1), do_sort=True, box_bufsize=0.8)
 
 # density binning
-eta_bin = BinningPlot(slice='e1_e2', n_bins= (128,128), ranges= ((0.0, 1.0), (0.0,1.0)))
+eta_bin = BinningPlot(slice='e1_e2', n_bins= (32,32), ranges= ((0.0, 1.0), (0.0,1.0)))
 model.kinetic_ions.set_save_data(binning_plots=(eta_bin, ))
 
 # ------------------
@@ -165,7 +165,7 @@ eta_minus = (r_minus - domain.params["a1"])/(domain.params["a2"] - domain.params
 eta_plus = (r_plus - domain.params["a1"])/(domain.params["a2"] - domain.params["a1"])
 
 # Perturbations for (some) kinetic species
-perturbation = perturbations.ModesCos(amps=(0.5,), ms=(ms,), perb_domain=((eta_minus,eta_plus), None, None))
+perturbation = perturbations.ModesCos(amps=(1e-6,), ms=(ms,), perb_domain=((eta_minus,eta_plus), None, None))
 init = maxwellians.GyroMaxwellian2D(n=(n_init, perturbation), equil=equil)
 model.kinetic_ions.var.add_initial_condition(init)
 

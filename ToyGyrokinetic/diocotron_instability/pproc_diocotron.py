@@ -170,7 +170,7 @@ def mk_video(bin_name, quantity, img_dir):
 
         plt.savefig(
             filename,
-            dpi=100,              
+            dpi=250,              
             format="jpg",
         )
 
@@ -191,6 +191,6 @@ def mk_video(bin_name, quantity, img_dir):
     clip.write_videofile(os.path.join(img_dir, "output.mp4"))
 
 # path to save video
-# save_path = os.path.join(os.getcwd(), "video")
-# os.makedirs(save_path, exist_ok=True)
-# mk_video("e1_e2_density", "f_binned", os.path.join(save_path))
+save_path = os.path.join(os.getcwd(), "video")
+os.makedirs(save_path, exist_ok=True)
+mk_video("e1_e2_density", "f_binned", os.path.join(save_path))
