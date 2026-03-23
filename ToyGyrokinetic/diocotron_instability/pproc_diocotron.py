@@ -166,3 +166,68 @@ with open("params_diocotron.py", "r") as py_file:
 with open(os.path.join(save_path, "param.txt"), "w") as txt_file:
     txt_file.write(content)
     txt_file.close()
+
+# ------------------
+# Make video
+# ------------------
+
+def mk_video(bin_name, quantity, img_dir):
+    from tqdm import tqdm
+    # Save individual images
+
+    os.makedirs(img_dir, exist_ok=True)# good compression
+
+    e1_bin = pdata.f.kinetic_ions.e1_e2_density.grid_e1
+    e2_bin = pdata.f.kinetic_ions.e1_e2_density.grid_e2
+
+    phy_bin = domain(e1_bin, e2_bin, 0, squeeze_out=True)
+    Xs, Ys = phy_bin[0], phy_bin[1]
+
+    import warnings
+    warnings.filterwarnings(
+        "ignore",
+        message="The input coordinates to pcolor are interpreted as cell centers"
+    )
+
+    for idx in tqdm(range(len(pdata.t_grid))):
+        time = pdata.t_grid[idx]
+
+        fig, ax = plt.subplots(1, figsize=(8,6))
+
+        #maxwellian distribution plot
+        color_mapped = getattr(
+            getattr(pdata.f.kinetic_ions, bin_name), quantity
+            )[idx]
+        pcm = ax.pcolor(Xs,Ys,color_mapped,vmin=0,vmax=2.5)
+
+        fig.colorbar(pcm, ax=ax)
+
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_title(f"{quantity} at t = {pdata.t_grid[idx]:4.2e}")
+
+        filename = os.path.join(img_dir, f"frame_{idx:05d}.jpg")
+
+        plt.savefig(
+            filename,
+            dpi=100,              
+            format="jpg",
+        )
+
+        plt.close(fig)
+
+    # Combine images to video
+    from moviepy import ImageSequenceClip
+
+    image_files = [
+        os.path.join(img_dir, img)
+        for img in os.listdir(img_dir)
+        if img.endswith((".jpg", ".png"))
+    ]
+
+    image_files.sort() 
+
+    clip = ImageSequenceClip(image_files, fps=24)
+    clip.write_videofile(os.path.join(img_dir, "output.mp4"))
+
+mk_video("e1_e2_density", "f_binned", os.path.join(save_path, "video"))
