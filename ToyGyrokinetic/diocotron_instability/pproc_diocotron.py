@@ -18,15 +18,10 @@ pp.process(physical=True)
 pdata = PlottingData(path_out=sim_path)
 pdata.load()
 
-# path to save plots
-save_path = os.path.join(os.getcwd(), "images", "sim")
-os.makedirs(save_path, exist_ok=True)
-
 # ------------------
 # Check simulation domain
 # ------------------
-
-domain.show(save_dir=os.path.join(save_path,"domain.png"))
+domain.show()
 
 
 # ------------------
@@ -54,8 +49,7 @@ ax.set_xlabel("time")
 ax.set_ylabel("Energy [a.u.]")
 
 plt.tight_layout()
-plt.savefig(os.path.join(save_path, "growth_rate.png"))
-plt.close()
+plt.show()
 
 
 # ------------------
@@ -90,8 +84,7 @@ def plot_phaseSpace(bin_name, quantity, xs, ys, x_label = "x", y_label = "y", in
             fig.colorbar(pcm, ax = ax_maxwellian)
             
     # plt.tight_layout()
-    plt.savefig(os.path.join(save_path, f"{bin_name}_{quantity}_phaseSpace"))
-    plt.close()
+    plt.show()
 
 # e1_e2_density binplot in physical coordinate
 e1_bin = pdata.f.kinetic_ions.e1_e2_density.grid_e1
@@ -129,15 +122,16 @@ for i in range(nrows):
         fig.colorbar(pcm, ax=ax_maxwellian)
 
 plt.tight_layout()
-plt.savefig(os.path.join(save_path, "potentialEvolution"))
-plt.close()
-
+plt.show()
 
 # ------------------
 # Make video
 # ------------------
 
 def mk_video(bin_name, quantity, img_dir):
+    ###
+    # Require moviepy library
+    ###
     from tqdm import tqdm
     # Save individual images
 
@@ -196,4 +190,7 @@ def mk_video(bin_name, quantity, img_dir):
     clip = ImageSequenceClip(image_files, fps=60)
     clip.write_videofile(os.path.join(img_dir, "output.mp4"))
 
-# mk_video("e1_e2_density", "f_binned", os.path.join(save_path, "video"))
+# path to save video
+# save_path = os.path.join(os.getcwd(), "video")
+# os.makedirs(save_path, exist_ok=True)
+# mk_video("e1_e2_density", "f_binned", os.path.join(save_path))
