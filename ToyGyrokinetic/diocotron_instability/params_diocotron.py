@@ -82,7 +82,7 @@ domain = domains.HollowCylinder(a1=1.0, a2=10.0, Lz=10.0)
 equil = equils.HomogenSlab()
 
 # Grid
-grid = grids.TensorProductGrid(Nel=(64,64,1), mpi_dims_mask=(True,True,False))
+grid = grids.TensorProductGrid(Nel=(32,64,1), mpi_dims_mask=(True,True,False))
 
 # Derham options
 derham_opts = DerhamOptions(

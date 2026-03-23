@@ -22,27 +22,6 @@ pdata.load()
 save_path = os.path.join(os.getcwd(), "images", "sim")
 os.makedirs(save_path, exist_ok=True)
 
-
-# ------------------
-# Define transformation functions
-# ------------------
-
-# Transform logical space to cartesian then polar coordinate
-domain_params = domain.params
-a1 = domain_params["a1"]
-a2 = domain_params["a2"]
-Lz = domain_params["Lz"]
-poc = domain_params["poc"]
-
-def logical_to_cylindrical(eta1,eta2,eta3):
-    r = (a1 + (a2-a1)*eta1)
-    theta = (2*xp.pi*eta2/poc)
-    z = Lz*eta3
-    
-    return r, theta, z
-
-r, theta, z = logical_to_cylindrical(*pdata.grids_log)
-
 # ------------------
 # Check simulation domain
 # ------------------
@@ -214,7 +193,7 @@ def mk_video(bin_name, quantity, img_dir):
 
     image_files.sort() 
 
-    clip = ImageSequenceClip(image_files, fps=24)
+    clip = ImageSequenceClip(image_files, fps=60)
     clip.write_videofile(os.path.join(img_dir, "output.mp4"))
 
-mk_video("e1_e2_density", "f_binned", os.path.join(save_path, "video"))
+# mk_video("e1_e2_density", "f_binned", os.path.join(save_path, "video"))
